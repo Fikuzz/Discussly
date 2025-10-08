@@ -1,22 +1,14 @@
-﻿namespace Discussly.Core.Commons
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Discussly.Core.Commons
 {
     public abstract class Result
     {
-        public bool IsSuccess { get; }
-        public bool IsFailure => !IsSuccess;
-        public string Error { get; } = string.Empty;
-
-        protected Result(bool isSuccess, string error)
-        {
-            if (isSuccess && !string.IsNullOrEmpty(error))
-                throw new InvalidOperationException("Successful result cannot have error");
-
-            if (!isSuccess && string.IsNullOrEmpty(error))
-                throw new InvalidOperationException("Failed result must have error");
-
-            IsSuccess = isSuccess;
-            Error = error;
-        }
+        [MemberNotNullWhen(true, nameof(Error))]
+        public abstract bool IsSuccess { get; }
+        [MemberNotNullWhen(true, nameof(Error))]
+        public abstract bool IsFailure { get; }
+        public abstract string? Error { get; }
 
         public static Result Success() => new Result<object?>(true, null, string.Empty);
         public static Result<T> Success<T>(T value) => Result<T>.Success(value);
@@ -28,10 +20,19 @@
 
     public sealed class Result<T> : Result
     {
+        [MemberNotNullWhen(true, nameof(Value))]
+        [MemberNotNullWhen(false, nameof(Error))]
+        public override bool IsSuccess { get; }
+        [MemberNotNullWhen(false, nameof(Value))]
+        [MemberNotNullWhen(true, nameof(Error))]
+        public override bool IsFailure => !IsSuccess;
+        public override string? Error { get; }
         public T? Value { get; }
 
-        internal Result(bool isSuccess, T? value, string error) : base(isSuccess, error)
+        internal Result(bool isSuccess, T? value, string error)
         {
+            IsSuccess = isSuccess;
+            Error = error;
             Value = value;
         }
 
