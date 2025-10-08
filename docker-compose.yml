@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: discussly-db
+    environment:
+      POSTGRES_DB: discussly
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: discussly123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  discussly.api:
+    image: ${DOCKER_REGISTRY-}discusslyapi
+    build:
+      context: .
+      dockerfile: Discussly.Api/Dockerfile
+    container_name: discussly-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=discussly;Username=postgres;Password=discussly123
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

@@ -1,4 +1,5 @@
-﻿using Discussly.Core.Common;
+﻿using Discussly.Core.Commons;
+using Discussly.Core.Entities;
 
 namespace Discussly.Core.UnitTests
 {

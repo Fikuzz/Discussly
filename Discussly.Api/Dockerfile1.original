@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["Discussly.Api/Discussly.Api.csproj", "Discussly.Api/"]
+COPY ["Discussly.Infrastructure/Discussly.Infrastructure.csproj", "Discussly.Infrastructure/"]
+COPY ["Discussly.Core/Discussly.Core.csproj", "Discussly.Core/"]
+RUN dotnet restore "Discussly.Api/Discussly.Api.csproj"
+
+COPY . .
+WORKDIR "/src/Discussly.Api"
+RUN dotnet build "Discussly.Api.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "Discussly.Api.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Discussly.Api.dll"]

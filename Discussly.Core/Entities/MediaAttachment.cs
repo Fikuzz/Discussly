@@ -1,4 +1,5 @@
-﻿using Discussly.Core.Common;
+﻿using Discussly.Core.Commons;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
 namespace Discussly.Core.Entities
@@ -16,6 +17,7 @@ namespace Discussly.Core.Entities
         public string? ThumbnailUrl { get; protected set; }
         public int? Duration { get; protected set; }
         public int SortOrder { get; protected set; }
+        [Column(TypeName = "jsonb")]
         public string Metadata { get; protected set; } = string.Empty;
 
         protected MediaAttachment() { }

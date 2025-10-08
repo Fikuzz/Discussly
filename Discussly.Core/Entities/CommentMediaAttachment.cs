@@ -1,4 +1,4 @@
-﻿using Discussly.Core.Common;
+﻿using Discussly.Core.Commons;
 using System.Text.Json;
 
 namespace Discussly.Core.Entities

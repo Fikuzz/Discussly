@@ -1,4 +1,4 @@
-﻿namespace Discussly.Core.Common
+﻿namespace Discussly.Core.Commons
 {
     public enum FileType : short
     {

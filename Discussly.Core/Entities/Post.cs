@@ -1,4 +1,4 @@
-﻿using Discussly.Core.Common;
+﻿using Discussly.Core.Commons;
 namespace Discussly.Core.Entities
 {
     public class Post
