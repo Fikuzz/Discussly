@@ -3,6 +3,7 @@ using System;
 using Discussly.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Discussly.Infrastructure.Migrations
 {
     [DbContext(typeof(DiscusslyDbContext))]
-    partial class DiscusslyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251011193512_AddUserRoleSystem")]
+    partial class AddUserRoleSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,44 +24,6 @@ namespace Discussly.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Discussly.Core.Entities.Ban", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("BannedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ModeratorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<DateTime?>("UnbannedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UnbannedByModeratorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModeratorId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Bans");
-                });
 
             modelBuilder.Entity("Discussly.Core.Entities.Comment", b =>
                 {
@@ -356,6 +321,9 @@ namespace Discussly.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -392,6 +360,8 @@ namespace Discussly.Infrastructure.Migrations
 
                     b.HasIndex("Email", "Username");
 
+                    b.HasIndex("IsBanned", "Karma");
+
                     b.ToTable("Users");
                 });
 
@@ -419,25 +389,6 @@ namespace Discussly.Infrastructure.Migrations
                     b.HasIndex("PostId", "SortOrder");
 
                     b.HasDiscriminator().HasValue("PostMediaAttachment");
-                });
-
-            modelBuilder.Entity("Discussly.Core.Entities.Ban", b =>
-                {
-                    b.HasOne("Discussly.Core.Entities.User", "Moderator")
-                        .WithMany()
-                        .HasForeignKey("ModeratorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Discussly.Core.Entities.User", "User")
-                        .WithMany("Bans")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Moderator");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Discussly.Core.Entities.Comment", b =>
@@ -574,11 +525,6 @@ namespace Discussly.Infrastructure.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("MediaAttachments");
-                });
-
-            modelBuilder.Entity("Discussly.Core.Entities.User", b =>
-                {
-                    b.Navigation("Bans");
                 });
 #pragma warning restore 612, 618
         }

@@ -16,6 +16,7 @@ namespace Discussly.Infrastructure.DataAccess
         public DbSet<CommentMediaAttachment> CommentMediaAttachments => Set<CommentMediaAttachment>();
         public DbSet<CommunityModerator> CommunityModerators => Set<CommunityModerator>();
         public DbSet<CommunitySubscription> CommunitySubscriptions => Set<CommunitySubscription>();
+        public DbSet<Ban> Bans => Set<Ban>();
 
         public DiscusslyDbContext(DbContextOptions<DiscusslyDbContext> options)
             : base(options) { }
@@ -53,5 +54,6 @@ namespace Discussly.Infrastructure.DataAccess
         IQueryable<CommentMediaAttachment> IDiscusslyDbContext.CommentMediaAttachments => CommentMediaAttachments;
         IQueryable<CommunityModerator> IDiscusslyDbContext.CommunityModerators => CommunityModerators;
         IQueryable<CommunitySubscription> IDiscusslyDbContext.CommunitySubscriptions => CommunitySubscriptions;
+        IQueryable<Ban> IDiscusslyDbContext.Bans => Bans;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Discussly.Core.DTOs;
 using Discussly.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Discussly.Api.Controllers

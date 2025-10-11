@@ -124,5 +124,42 @@ namespace Discussly.Core.UnitTests
             Assert.True(result.IsSuccess);
             Assert.Equal(newAvatar, user.AvatarUrl);
         }
+
+        [Fact]
+        public void SoftDeleteUser_ReturnsSuccess()
+        {
+            // Arrange
+            var user = User.Create("user", "test@email.com", "hash", "avatar.jpg").Value;
+            var initialIsDeleted = user.IsDeleted;
+            var initialDeletedAt = user.DeletedAt;
+
+            // Act
+            user.MarkAsDeleted();
+
+            // Assert
+            Assert.False(initialIsDeleted);
+            Assert.True(user.IsDeleted);
+            Assert.Null(initialDeletedAt);
+
+            Assert.NotNull(user.DeletedAt);
+            Assert.InRange(user.DeletedAt.Value,
+                DateTime.UtcNow.AddSeconds(-2),
+                DateTime.UtcNow.AddSeconds(2));
+        }
+
+        [Fact]
+        public void RestoreUser_ReturnsSuccess()
+        {
+            // Arrange
+            var user = User.Create("user", "test@email.com", "hash", "avatar.jpg").Value;
+
+            // Act
+            user.MarkAsDeleted();
+            user.Restore();
+
+            // Assert
+            Assert.False(user.IsDeleted);
+            Assert.Null(user.DeletedAt);
+        }
     }
 }

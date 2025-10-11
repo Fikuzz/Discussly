@@ -5,6 +5,6 @@ namespace Discussly.Core.Interfaces
     public interface IJwtService
     {
         string GenerateToken(User user);
-        Guid? ValidateToken(string token);
+        (Guid? userId, string? role) ValidateToken(string token);
     }
 }

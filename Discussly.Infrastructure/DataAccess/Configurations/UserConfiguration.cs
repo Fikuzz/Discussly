@@ -1,4 +1,5 @@
-﻿using Discussly.Core.Entities;
+﻿using Discussly.Core.Commons;
+using Discussly.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -24,6 +25,14 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
             builder.Property(x => x.AvatarUrl)
                 .HasMaxLength(MediaAttachment.MAX_URL_LENGTH);
 
+            builder.Property(x => x.IsDeleted)
+                .HasDefaultValue(false);
+
+            builder.Property(x => x.Role)
+                .HasConversion<short>()
+                .IsRequired()
+                .HasDefaultValue(RoleType.User);
+
             // Уникальные индексы
             builder.HasIndex(x => x.Username)
                 .IsUnique();
@@ -35,8 +44,6 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
             builder.HasIndex(x => x.CreatedAt);
             builder.HasIndex(x => x.Karma);
             builder.HasIndex(u => new { u.Email, u.Username });
-
-            builder.HasIndex(x => new { x.IsBanned, x.Karma });
         }
     }
 }

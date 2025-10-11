@@ -15,11 +15,14 @@ namespace Discussly.Core.Entities
         public string? AvatarUrl { get; private set; }
         public int Karma { get; private set; }
         public DateTime CreatedAt { get; private set; }
-        public bool IsBanned { get; private set; }
+        public bool IsDeleted { get; private set; } = false;
+        public DateTime? DeletedAt { get; private set; } = null;
+        public RoleType Role { get; private set; } = RoleType.User; 
 
+        public ICollection<Ban> Bans { get; private set; } = new List<Ban>();
         private User() { }
 
-        public static Result<User> Create(string username, string email, string passwordHash, string? avatarUrl = null)
+        public static Result<User> Create(string username, string email, string passwordHash, string? avatarUrl = null, RoleType role = RoleType.User)
         {
             var validationResult = ValidateUsername(username)
             .Combine(ValidateEmail(email))
@@ -37,7 +40,9 @@ namespace Discussly.Core.Entities
                 AvatarUrl = avatarUrl,
                 Karma = 0,
                 CreatedAt = DateTime.UtcNow,
-                IsBanned = false
+                IsDeleted = false,
+                DeletedAt = null,
+                Role = role
             };
 
             return Result<User>.Success(user);
@@ -80,16 +85,6 @@ namespace Discussly.Core.Entities
             Karma += change;
         }
 
-        public void BanUser()
-        {
-            IsBanned = true;
-        }
-
-        public void UnbanUser()
-        {
-            IsBanned = false;
-        }
-
         public Result UpdateAvatar(string? newAvatarUrl)
         {
             if (!string.IsNullOrWhiteSpace(newAvatarUrl))
@@ -127,5 +122,27 @@ namespace Discussly.Core.Entities
             Username = newUsername.Trim();
             return Result.Success();
         }
+        public void MarkAsDeleted()
+        {
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+        }
+
+        public void Restore()
+        {
+            IsDeleted = false;
+            DeletedAt = null;
+        }
+
+        public void AssignRole(RoleType role)
+        {
+            Role = role;
+        }
+
+        public bool IsAdmin => Role == RoleType.Admin;
+        public bool IsModerator => Role == RoleType.Moderator || IsAdmin;
+        public bool IsBanned => GetActiveBan() != null;
+        public Ban? GetActiveBan() => Bans.FirstOrDefault(b => b.IsActive);
+        public IEnumerable<Ban> GetBanHistory() => Bans.OrderByDescending(b => b.BannedAt);
     }
 }
