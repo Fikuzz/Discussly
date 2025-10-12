@@ -15,6 +15,7 @@ namespace Discussly.Core.Interfaces
         IQueryable<CommunityModerator> CommunityModerators { get; }
         IQueryable<CommunitySubscription> CommunitySubscriptions { get; }
         IQueryable<Ban> Bans { get; }
+        IQueryable<PasswordResetToken> PasswordResetTokens { get; }
 
         void Add<T>(T entity) where T : class;
         Task AddAsync<T>(T entity) where T : class;

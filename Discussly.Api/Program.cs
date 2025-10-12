@@ -22,6 +22,8 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<IEmailService, LogEmailService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -39,6 +41,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
         };
     });
+
+builder.Services.AddHostedService<TokenCleanupService>();
 
 // Add services to the container
 builder.Services.AddControllers();

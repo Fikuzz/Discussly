@@ -17,6 +17,7 @@ namespace Discussly.Infrastructure.DataAccess
         public DbSet<CommunityModerator> CommunityModerators => Set<CommunityModerator>();
         public DbSet<CommunitySubscription> CommunitySubscriptions => Set<CommunitySubscription>();
         public DbSet<Ban> Bans => Set<Ban>();
+        public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
         public DiscusslyDbContext(DbContextOptions<DiscusslyDbContext> options)
             : base(options) { }
@@ -55,5 +56,6 @@ namespace Discussly.Infrastructure.DataAccess
         IQueryable<CommunityModerator> IDiscusslyDbContext.CommunityModerators => CommunityModerators;
         IQueryable<CommunitySubscription> IDiscusslyDbContext.CommunitySubscriptions => CommunitySubscriptions;
         IQueryable<Ban> IDiscusslyDbContext.Bans => Bans;
+        IQueryable<PasswordResetToken> IDiscusslyDbContext.PasswordResetTokens => PasswordResetTokens;
     }
 }

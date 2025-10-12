@@ -138,6 +138,10 @@ namespace Discussly.Core.Entities
         {
             Role = role;
         }
+        public void UpdatePasswordHash(string passwordHash)
+        {
+            PasswordHash = passwordHash;
+        }
 
         public bool IsAdmin => Role == RoleType.Admin;
         public bool IsModerator => Role == RoleType.Moderator || IsAdmin;
