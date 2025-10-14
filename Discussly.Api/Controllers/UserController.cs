@@ -1,10 +1,12 @@
-﻿using Discussly.Core.Commons;
+﻿using Discussly.Application.Interfaces;
+using Discussly.Core.Commons;
 using Discussly.Core.DTOs;
 using Discussly.Core.Entities;
 using Discussly.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Services;
 
 namespace Discussly.Api.Controllers
 {
@@ -15,11 +17,13 @@ namespace Discussly.Api.Controllers
     {
         IUserService _userService;
         private readonly IUserContext _userContext;
+        private readonly IStorageService _storageService;
 
-        public UserController(IUserService userService, IUserContext userContext)
+        public UserController(IUserService userService, IUserContext userContext, IStorageService storageService)
         {
             _userService = userService;
             _userContext = userContext;
+            _storageService = storageService;
         }
 
         [HttpDelete("delete-my-account")]
@@ -136,5 +140,21 @@ namespace Discussly.Api.Controllers
             return Ok($"Was deleted {result.Value} user(-s)");
         }
 
+        // PUT /api/user/avatar - обновить аватар 
+        [HttpPut("avatar")]
+        public async Task<ActionResult> UpdateAvatar(IFormFile formFile, CancellationToken cancellationToken)
+        {
+            if (_userContext.UserId == null)
+                return BadRequest("Couldn't get User Id");
+
+            var storageResult = await _storageService.SaveAvatarAsync(_userContext.UserId.Value, formFile);
+
+            if(storageResult.IsFailure)
+                return BadRequest(storageResult.Error);
+
+            var result = await _userService.UpdateAvatar(storageResult.Value, cancellationToken);
+
+            return Ok(storageResult.Value);
+        }
     }
 }

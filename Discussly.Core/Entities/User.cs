@@ -12,7 +12,7 @@ namespace Discussly.Core.Entities
         public string Username { get; private set; } = string.Empty;
         public string Email { get; private set; } = string.Empty;
         public string PasswordHash { get; private set; } = string.Empty;
-        public string? AvatarUrl { get; private set; }
+        public string? AvatarFileName { get; private set; }
         public int Karma { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public bool IsDeleted { get; private set; } = false;
@@ -22,7 +22,7 @@ namespace Discussly.Core.Entities
         public ICollection<Ban> Bans { get; private set; } = new List<Ban>();
         private User() { }
 
-        public static Result<User> Create(string username, string email, string passwordHash, string? avatarUrl = null, RoleType role = RoleType.User)
+        public static Result<User> Create(string username, string email, string passwordHash, string? avatarFileName = null, RoleType role = RoleType.User)
         {
             var validationResult = ValidateUsername(username)
             .Combine(ValidateEmail(email))
@@ -37,7 +37,7 @@ namespace Discussly.Core.Entities
                 Username = username.Trim(),
                 Email = email.Trim().ToLowerInvariant(),
                 PasswordHash = passwordHash,
-                AvatarUrl = avatarUrl,
+                AvatarFileName = avatarFileName,
                 Karma = 0,
                 CreatedAt = DateTime.UtcNow,
                 IsDeleted = false,
@@ -85,21 +85,9 @@ namespace Discussly.Core.Entities
             Karma += change;
         }
 
-        public Result UpdateAvatar(string? newAvatarUrl)
+        public Result UpdateAvatar(string? newAvatarFileName)
         {
-            if (!string.IsNullOrWhiteSpace(newAvatarUrl))
-            {
-                if (!Uri.IsWellFormedUriString(newAvatarUrl, UriKind.Absolute))
-                    return Result.Failure("Invalid avatar URL format");
-
-                if (!Uri.TryCreate(newAvatarUrl, UriKind.Absolute, out var uri) ||
-                    (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-                {
-                    return Result.Failure("Avatar URL must use HTTP or HTTPS protocol");
-                }
-            }
-
-            AvatarUrl = String.IsNullOrWhiteSpace(newAvatarUrl) ? null : newAvatarUrl;
+            AvatarFileName = String.IsNullOrWhiteSpace(newAvatarFileName) ? null : newAvatarFileName;
             return Result.Success();
         }
 

@@ -22,9 +22,6 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
             builder.Property(x => x.PasswordHash)
                 .IsRequired();
 
-            builder.Property(x => x.AvatarUrl)
-                .HasMaxLength(MediaAttachment.MAX_URL_LENGTH);
-
             builder.Property(x => x.IsDeleted)
                 .HasDefaultValue(false);
 

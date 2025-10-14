@@ -20,24 +20,6 @@ namespace Discussly.Api.Controllers
             _passwordService = passwordService;
         }
 
-        /// <summary>
-        /// Register a new user
-        /// </summary>
-        /// <remarks>
-        /// Пример запроса:
-        /// 
-        ///     POST /Auth/register
-        ///     {
-        ///         "username": "Admin",
-        ///         "email": "admin@gmail.com", 
-        ///         "password": "root123",
-        ///         "avatarUrl": "https://avatars.githubusercontent.com/u/53544253?s=48&amp;v=4"
-        ///     }
-        /// 
-        /// </remarks>
-        /// <param name="request">User registration data</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Authentication response with user data and JWT token</returns>
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register(
         RegisterRequest request,
@@ -51,12 +33,6 @@ namespace Discussly.Api.Controllers
             );
         }
 
-        /// <summary>
-        /// Authenticate user and get JWT token
-        /// </summary>
-        /// <param name="request">Login credentials (email/username and password)</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>Authentication response with user data and JWT token</returns>
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login(
             AuthRequest request,

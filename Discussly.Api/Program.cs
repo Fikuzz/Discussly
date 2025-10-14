@@ -1,4 +1,6 @@
-﻿using Discussly.Application.Services;
+﻿using Discussly.Application.Interfaces;
+using Discussly.Application.Services;
+using Discussly.Application.Settings;
 using Discussly.Core.Interfaces;
 using Discussly.Infrastructure.DataAccess;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,6 +27,16 @@ builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IEmailService, LogEmailService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<StorageSettings>(
+    builder.Configuration.GetSection("StorageSettings"));
+
+builder.Services.PostConfigure<StorageSettings>(settings =>
+{
+    if(String.IsNullOrEmpty(settings.BasePath))
+        settings.BasePath = builder.Environment.WebRootPath;
+});
+builder.Services.AddScoped<IStorageService, StorageService>();
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -114,6 +126,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.MapControllers();
 

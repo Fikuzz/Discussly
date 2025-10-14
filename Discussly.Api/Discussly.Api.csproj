@@ -29,4 +29,8 @@
     <ProjectReference Include="..\Discussly.Infrastructure\Discussly.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

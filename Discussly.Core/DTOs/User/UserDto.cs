@@ -6,7 +6,7 @@ namespace Discussly.Core.DTOs
     {
         public Guid Id { get; set; }
         public string Username { get; set; } = string.Empty;
-        public string? AvatarUrl { get; set; }
+        public string? AvatarFileName { get; set; }
         public int Karma { get; set; }
         public DateTime CreatedAt { get; set; }
 
@@ -16,7 +16,7 @@ namespace Discussly.Core.DTOs
             {
                 Id = user.Id,
                 Username = user.Username,
-                AvatarUrl = user.AvatarUrl,
+                AvatarFileName = user.AvatarFileName,
                 Karma = user.Karma,
                 CreatedAt = user.CreatedAt
             };

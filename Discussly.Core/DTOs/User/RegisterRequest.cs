@@ -4,7 +4,6 @@
     (
         string Username,
         string Email,
-        string Password,
-        string? AvatarUrl = null
+        string Password
     );
 }
