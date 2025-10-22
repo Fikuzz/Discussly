@@ -17,5 +17,7 @@ namespace Discussly.Core.Interfaces
         Task<Result> BanUserAsync(Guid userId, string reason, int? durationMinutes, CancellationToken cancellationToken);
         Task<Result> UnbanUserAsync(Guid userId, CancellationToken cancellationToken);
         Task<Result<int>> PurgeDeletedUsersAsync(int daysOld, CancellationToken cancellationToken);
+        Task<Result<string?>> GetUserAvatarNameAsync(Guid userId, CancellationToken cancellationToken);
+        Task<Result> UpdateUsernameAsync(string username, CancellationToken cancellationToken);
     }
 }

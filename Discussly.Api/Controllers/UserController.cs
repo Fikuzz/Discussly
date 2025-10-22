@@ -147,6 +147,12 @@ namespace Discussly.Api.Controllers
             if (_userContext.UserId == null)
                 return BadRequest("Couldn't get User Id");
 
+            var oldAvatarName = await _userService.GetUserAvatarNameAsync(_userContext.UserId.Value, cancellationToken);
+            if (oldAvatarName.IsSuccess && oldAvatarName.Value != null)
+            {
+                _storageService.DeleteAvatar(oldAvatarName.Value);
+            }
+
             var storageResult = await _storageService.SaveAvatarAsync(_userContext.UserId.Value, formFile);
 
             if(storageResult.IsFailure)
@@ -155,6 +161,17 @@ namespace Discussly.Api.Controllers
             var result = await _userService.UpdateAvatar(storageResult.Value, cancellationToken);
 
             return Ok(storageResult.Value);
+        }
+
+        [HttpPut("username")]
+        public async Task<ActionResult> UpdateUsername(string username, CancellationToken cancellationToken)
+        {
+            var result = await _userService.UpdateUsernameAsync(username, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
         }
     }
 }

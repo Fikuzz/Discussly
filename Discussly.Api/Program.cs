@@ -1,4 +1,5 @@
-﻿using Discussly.Application.Interfaces;
+﻿using Discussly.Application.Hubs;
+using Discussly.Application.Interfaces;
 using Discussly.Application.Services;
 using Discussly.Application.Settings;
 using Discussly.Core.Interfaces;
@@ -11,6 +12,8 @@ using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR();
 
 // База данных
 builder.Services.AddDbContext<DiscusslyDbContext>(options =>
@@ -51,6 +54,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!)),
             ValidateIssuerSigningKey = true,
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // Если запрос к хабу
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/userHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -112,6 +132,8 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.MapHub<UserHub>("/userHub");
+
 app.UseSwagger(c =>
 {
     c.RouteTemplate = "swagger/{documentName}/swagger.json";
@@ -131,7 +153,6 @@ app.UseStaticFiles();
 
 app.MapControllers();
 
-// Миграции ПЕРЕД запуском приложения
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<DiscusslyDbContext>();
