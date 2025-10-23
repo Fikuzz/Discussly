@@ -20,6 +20,8 @@ namespace Discussly.Core.Entities
         public RoleType Role { get; private set; } = RoleType.User; 
 
         public ICollection<Ban> Bans { get; private set; } = new List<Ban>();
+        public ICollection<Post> Posts { get; private set; } = new List<Post>();
+        public ICollection<Comment> Comments { get; private set; } = new List<Comment>();
         private User() { }
 
         public static Result<User> Create(string username, string email, string passwordHash, string? avatarFileName = null, RoleType role = RoleType.User)

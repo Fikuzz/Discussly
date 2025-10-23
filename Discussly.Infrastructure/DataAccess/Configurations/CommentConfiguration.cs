@@ -15,7 +15,7 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
                 .IsRequired();
 
             builder.HasOne<User>()
-                .WithMany()
+                .WithMany(u => u.Comments)
                 .HasForeignKey(x => x.AuthorId)
                 .OnDelete(DeleteBehavior.SetNull);
 

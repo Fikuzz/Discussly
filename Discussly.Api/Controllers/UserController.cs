@@ -27,9 +27,9 @@ namespace Discussly.Api.Controllers
             _storageService = storageService;
         }
 
+        //Deleting
         [HttpDelete("delete-my-account")]
-        public async Task<ActionResult> DeleteMyAccount(
-            CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteMyAccount(CancellationToken cancellationToken)
         {
             var result = await _userService.SoftDeleteAsync(cancellationToken);
             if (result.IsFailure)
@@ -38,11 +38,20 @@ namespace Discussly.Api.Controllers
             return Ok();
         }
 
+        [HttpPost("purge-deleted-users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> PurgeDeletedUsers(CancellationToken cancellationToken, [FromQuery] int daysOld = 30)
+        {
+            var result = await _userService.PurgeDeletedUsersAsync(daysOld, cancellationToken);
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok($"Was deleted {result.Value} user(-s)");
+        }
+
         [HttpPost("restore/{userId:guid}")]
         [Authorize(Roles = "Admin,Moderator")]
-        public async Task<ActionResult> RestoreUser(
-            Guid userId,
-            CancellationToken cancellationToken)
+        public async Task<ActionResult> RestoreUser(Guid userId, CancellationToken cancellationToken)
         {
             var result = await _userService.RestoreAsync(userId, cancellationToken);
 
@@ -52,11 +61,10 @@ namespace Discussly.Api.Controllers
             return Ok();
         }
 
+        //Role
         [HttpPost("assign-role")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AssignRole(
-            [FromBody] AssignRoleRequest request,
-            CancellationToken cancellationToken)
+        public async Task<ActionResult> AssignRole([FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
         {
             if (!_userContext.IsAuthenticated || _userContext.UserId == null)
                 return Unauthorized();
@@ -76,7 +84,7 @@ namespace Discussly.Api.Controllers
             return Ok(new { message = $"Role {request.Role} assigned to user {request.TargetUserId}" });
         }
 
-        // GET /api/users - список пользователей с пагинацией
+        //Get
         [HttpGet]
         [Authorize(Roles = "Moderator,Admin")]
         public async Task<ActionResult> GetUsers([FromQuery] UserQuery query, CancellationToken cancellationToken)
@@ -93,9 +101,7 @@ namespace Discussly.Api.Controllers
             return Ok(userDtos);
         }
 
-        // GET /api/users/{userId} - детали пользователя
         [HttpGet("{userId:guid}")]
-        [Authorize(Roles = "Moderator,Admin")]
         public async Task<ActionResult<UserDto>> GetUser(Guid userId, CancellationToken cancellationToken)
         {
             var result = await _userService.GetUserAsync(userId, cancellationToken);
@@ -105,7 +111,25 @@ namespace Discussly.Api.Controllers
             return Ok(result);
         }
 
-        // POST /api/users/{userId}/ban - забанить пользователя
+        [HttpGet("profile")]
+        public async Task<ActionResult<ProfileDto>> GetMyProfile(CancellationToken cancellationToken)
+        {
+            if (!_userContext.IsAuthenticated)
+                return Unauthorized();
+
+            var result = await _userService.GetProfileAsync(cancellationToken, userId: null);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        [HttpGet("profile/{userId:guid}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ProfileDto>> GetUserProfile(Guid userId, CancellationToken cancellationToken)
+        {
+            var result = await _userService.GetProfileAsync(cancellationToken, userId);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
+        }
+
+        //Ban
         [HttpPost("{userId:guid}/ban")]
         [Authorize(Roles = "Moderator,Admin")]
         public async Task<ActionResult> BanUser(Guid userId, [FromBody] BanRequest request, CancellationToken cancellationToken)
@@ -117,7 +141,6 @@ namespace Discussly.Api.Controllers
             return Ok();
         }
 
-        // POST /api/users/{userId}/unban - разбанить пользователя 
         [HttpPost("{userId:guid}/unban")]
         [Authorize(Roles = "Moderator,Admin")]
         public async Task<ActionResult> UnbanUser(Guid userId, CancellationToken cancellationToken)
@@ -129,19 +152,8 @@ namespace Discussly.Api.Controllers
             return Ok();
         }
 
-        // POST /api/admin/purge-deleted-users - полное удаление старых аккаунтов 
-        [HttpPost("purge-deleted-users")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> PurgeDeletedUsers(CancellationToken cancellationToken, [FromQuery] int daysOld = 30)
-        {
-            var result = await _userService.PurgeDeletedUsersAsync(daysOld, cancellationToken);
-            if (result.IsFailure)
-                return BadRequest(result.Error);
-
-            return Ok($"Was deleted {result.Value} user(-s)");
-        }
-
-        // PUT /api/user/avatar - обновить аватар 
+        
+        //Avatar
         [HttpPut("avatar")]
         public async Task<ActionResult> UpdateAvatar(IFormFile formFile, CancellationToken cancellationToken)
         {
@@ -184,6 +196,8 @@ namespace Discussly.Api.Controllers
             return Ok();
         }
 
+
+        //Username
         [HttpPut("username")]
         public async Task<ActionResult> UpdateUsername(string username, CancellationToken cancellationToken)
         {
@@ -194,5 +208,29 @@ namespace Discussly.Api.Controllers
 
             return Ok();
         }
+
+        //Karma
+        [HttpPost("karma/increment")]
+        public async Task<ActionResult> IncrementKarma(CancellationToken cancellationToken)
+        {
+            var result = await _userService.UpdateKarmaAsync(1, cancellationToken);
+
+            if(result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
+        }
+
+        [HttpPost("karma/decrement")]
+        public async Task<ActionResult> DecrementKarma(CancellationToken cancellationToken)
+        {
+            var result = await _userService.UpdateKarmaAsync(-1, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
+        }
+
     }
 }
