@@ -4,6 +4,7 @@ using Discussly.Core.DTOs;
 using Discussly.Core.Entities;
 using Discussly.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Services;
@@ -161,6 +162,26 @@ namespace Discussly.Api.Controllers
             var result = await _userService.UpdateAvatar(storageResult.Value, cancellationToken);
 
             return Ok(storageResult.Value);
+        }
+
+        [HttpDelete("avatar")]
+        public async Task<ActionResult> DeleteAvatar(CancellationToken cancellationToken)
+        {
+            if (_userContext.UserId == null)
+                return BadRequest("Couldn't get User Id");
+
+            var oldAvatarName = await _userService.GetUserAvatarNameAsync(_userContext.UserId.Value, cancellationToken);
+            if (oldAvatarName.IsSuccess && oldAvatarName.Value != null)
+            {
+                _storageService.DeleteAvatar(oldAvatarName.Value);
+            }
+
+            var result = await _userService.UpdateAvatar(null, cancellationToken);
+
+            if(result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
         }
 
         [HttpPut("username")]

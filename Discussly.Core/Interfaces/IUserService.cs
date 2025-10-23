@@ -10,6 +10,7 @@ namespace Discussly.Core.Interfaces
         Task<Result<AuthResponse>> LoginAsync(AuthRequest request, CancellationToken cancellationToken);
         Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken);
         Task<Result> UpdateAvatar(string? avatarName, CancellationToken cancellationToken);
+        Task<Result> DeleteAvatar(CancellationToken cancellationToken);
         Task<Result> SoftDeleteAsync(CancellationToken cancellationToken);
         Task<Result> AssignRoleAsync(Guid userId, RoleType role, CancellationToken token);
         Task<PagedList<User>> GetUsersAsync(UserQuery query, CancellationToken cancellationToken);
