@@ -25,6 +25,7 @@ builder.Services.AddScoped<IDiscusslyDbContext>(provider =>
 // Сервисы
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICommuityService, CommuityService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();

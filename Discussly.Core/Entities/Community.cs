@@ -1,4 +1,4 @@
-﻿using Discussly.Core.Commons;
+﻿    using Discussly.Core.Commons;
 
 namespace Discussly.Core.Entities
 {
@@ -13,6 +13,7 @@ namespace Discussly.Core.Entities
         public Guid Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public string DisplayName { get; private set; } = string.Empty;
+        public string? AvatarFileName { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public Guid OwnerId { get; private set; }
         public DateTime CreatedAt { get; private set; }
@@ -20,7 +21,7 @@ namespace Discussly.Core.Entities
 
         private Community() { }
 
-        public static Result<Community> Create(string name, string displayName, string description, Guid ownerId, bool isPublic)
+        public static Result<Community> Create(string name, string displayName, string? avatarFileName, string description, Guid ownerId, bool isPublic)
         {
             var validateResult = ValidateName(name)
                 .Combine(ValidateDisplayName(displayName))
@@ -34,6 +35,7 @@ namespace Discussly.Core.Entities
                 Id = Guid.NewGuid(),
                 Name = name.Trim(),
                 DisplayName = displayName.Trim(),
+                AvatarFileName = avatarFileName,
                 Description = description,
                 OwnerId = ownerId,
                 CreatedAt = DateTime.UtcNow,
@@ -99,6 +101,12 @@ namespace Discussly.Core.Entities
                 return validateResult;
 
             DisplayName = displayName.Trim();
+
+            return Result.Success();
+        }
+        public Result UpdateAvatar(string?  avatar)
+        {
+            AvatarFileName = String.IsNullOrWhiteSpace(avatar) ? null : avatar;
 
             return Result.Success();
         }
