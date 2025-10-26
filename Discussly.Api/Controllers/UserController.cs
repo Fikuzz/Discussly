@@ -163,10 +163,10 @@ namespace Discussly.Api.Controllers
             var oldAvatarName = await _userService.GetUserAvatarNameAsync(_userContext.UserId.Value, cancellationToken);
             if (oldAvatarName.IsSuccess && oldAvatarName.Value != null)
             {
-                _storageService.DeleteAvatar(oldAvatarName.Value);
+                _storageService.DeleteMedia(oldAvatarName.Value, Storage.UserAvatar);
             }
 
-            var storageResult = await _storageService.SaveAvatarAsync(_userContext.UserId.Value, formFile);
+            var storageResult = await _storageService.SaveMediaAsync(_userContext.UserId.Value, Storage.UserAvatar, formFile);
 
             if(storageResult.IsFailure)
                 return BadRequest(storageResult.Error);
@@ -185,7 +185,7 @@ namespace Discussly.Api.Controllers
             var oldAvatarName = await _userService.GetUserAvatarNameAsync(_userContext.UserId.Value, cancellationToken);
             if (oldAvatarName.IsSuccess && oldAvatarName.Value != null)
             {
-                _storageService.DeleteAvatar(oldAvatarName.Value);
+                _storageService.DeleteMedia(oldAvatarName.Value, Storage.UserAvatar);
             }
 
             var result = await _userService.UpdateAvatar(null, cancellationToken);

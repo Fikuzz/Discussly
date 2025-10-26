@@ -1,4 +1,5 @@
-﻿using Discussly.Core.DTOs;
+﻿using Discussly.Application.Interfaces;
+using Discussly.Core.DTOs;
 using Discussly.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace Discussly.Api.Controllers
     public class CommunityController : ControllerBase
     {
         private readonly ICommuityService _commuityService;
+        private readonly IStorageService _storageService;
 
-        public CommunityController(ICommuityService commuityService)
+        public CommunityController(ICommuityService commuityService, IStorageService storageService)
         {
             _commuityService = commuityService;
+            _storageService = storageService;
         }
 
         [HttpGet("{communityId:Guid}")]
@@ -29,7 +32,7 @@ namespace Discussly.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         public async Task<ActionResult<ICollection<CommunityDTO>>> GetAll(CancellationToken cancellationToken)
         {
             var result = await _commuityService.GetAllAsync(cancellationToken);

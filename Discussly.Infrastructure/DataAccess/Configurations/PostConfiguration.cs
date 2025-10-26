@@ -24,7 +24,7 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
                 .IsRequired();
 
             builder.HasOne<Community>()
-                .WithMany()
+                .WithMany(c => c.Posts)
                 .HasForeignKey (p => p.CommunityId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();

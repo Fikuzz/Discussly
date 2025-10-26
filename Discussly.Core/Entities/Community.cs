@@ -19,6 +19,9 @@ namespace Discussly.Core.Entities
         public DateTime CreatedAt { get; private set; }
         public bool IsPublic { get; private set; }
 
+        public virtual ICollection<CommunitySubscription> Members { get; set; } = new List<CommunitySubscription>();
+        public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
+
         private Community() { }
 
         public static Result<Community> Create(string name, string displayName, string? avatarFileName, string description, Guid ownerId, bool isPublic)
