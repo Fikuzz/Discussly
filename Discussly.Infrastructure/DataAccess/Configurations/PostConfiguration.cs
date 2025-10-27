@@ -17,13 +17,13 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
             builder.Property(x => x.ContentText)
                 .HasMaxLength(Post.CONTENT_MAX_LENGTH);
 
-            builder.HasOne<User>()
+            builder.HasOne(u => u.Author)
                 .WithMany(u => u.Posts)
                 .HasForeignKey(p => p.AuthorId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .IsRequired();
 
-            builder.HasOne<Community>()
+            builder.HasOne(c => c.Community)
                 .WithMany(c => c.Posts)
                 .HasForeignKey (p => p.CommunityId)
                 .OnDelete(DeleteBehavior.Cascade)

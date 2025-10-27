@@ -12,14 +12,15 @@ namespace Discussly.Core.Entities
         public string ContentText { get; private set; } = string.Empty;
         public Guid AuthorId { get; private set; }
         public Guid CommunityId { get; private set; }
-        public int Score { get; private set; }
-        public int CommentCount { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
 
         // НАВИГАЦИОННЫЕ СВОЙСТВА:
+        public virtual User? Author { get; private set; }
+        public virtual Community? Community { get; private set; }
         public virtual ICollection<PostMediaAttachment> MediaAttachments { get; private set; } = new List<PostMediaAttachment>();
         public virtual ICollection<Comment> Comments { get; private set; } = new List<Comment>();
+        public virtual ICollection<PostVote> Votes { get; private set; } = new List<PostVote>();
 
         private Post() { }
         public static Result<Post> Create(string title, string contentText, Guid authorId, Guid communityId)
@@ -37,8 +38,6 @@ namespace Discussly.Core.Entities
                 ContentText = contentText ?? "",
                 AuthorId = authorId,
                 CommunityId = communityId,
-                Score = 0,
-                CommentCount = 0,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -86,36 +85,6 @@ namespace Discussly.Core.Entities
             UpdatedAt = DateTime.UtcNow;
 
             return Result.Success();
-        }
-
-        public Result UpdateScore(int newScore)
-        {
-            Score = newScore;
-            return Result.Success();
-        }
-        public void Upvote()
-        {
-            Score++;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Downvote()
-        {
-            Score--;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void AddComment()
-        {
-            CommentCount++;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void RemoveComment()
-        {
-            if (CommentCount > 0)
-                CommentCount--;
-            UpdatedAt = DateTime.UtcNow;
         }
 
         public bool IsEdited => UpdatedAt > CreatedAt.AddSeconds(1);

@@ -17,7 +17,7 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
 
 
             builder.HasOne<Post>()
-                .WithMany()
+                .WithMany(p => p.Votes)
                 .HasForeignKey(x => x.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 

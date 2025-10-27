@@ -1,8 +1,6 @@
-﻿using Discussly.Core.Entities;
-
-namespace Discussly.Core.DTOs
+﻿namespace Discussly.Core.DTOs
 {
-    public class CommunityDTO
+    public class CommunityDto
     {
         public Guid Id { get; set; }
         public string DisplayName { get; set; } = string.Empty;
