@@ -55,7 +55,7 @@ namespace Discussly.Api.Controllers
             return Ok(result.Value);
         }
 
-        [HttpGet("{communityId:Guid}/post")]
+        [HttpGet("{communityId:Guid}/posts")]
         [AllowAnonymous]
         public async Task<ActionResult<ICollection<PostDto>>> GetCommunityPosts(Guid communityId, CancellationToken cancellationToken)
         {

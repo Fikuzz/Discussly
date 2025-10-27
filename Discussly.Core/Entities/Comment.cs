@@ -12,11 +12,11 @@ namespace Discussly.Core.Entities
         public Guid AuthorId { get; private set; }
         public Guid PostId { get; private set; }
         public Guid? ParentCommentId { get; private set; }
-        public int Score { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
 
         // НАВИГАЦИОННЫЕ СВОЙСТВА:
+        public virtual User Author { get; private set; }
         public virtual ICollection<CommentMediaAttachment> MediaAttachments { get; private set; } = new List<CommentMediaAttachment>();
         public virtual ICollection<Comment> Replies { get; private set; } = new List<Comment>();
 
@@ -35,7 +35,6 @@ namespace Discussly.Core.Entities
                 AuthorId = authorId,
                 PostId = postId,
                 ParentCommentId = parentCommentId,
-                Score = 0,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -67,19 +66,6 @@ namespace Discussly.Core.Entities
 
             return Result.Success();
         }
-
-        public void Upvote()
-        {
-            Score++;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Downvote()
-        {
-            Score--;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
         public bool IsEdited => UpdatedAt > CreatedAt.AddSeconds(1);
     }
 }

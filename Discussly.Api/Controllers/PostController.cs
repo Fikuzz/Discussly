@@ -12,10 +12,12 @@ namespace Discussly.Api.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
+        private readonly ICommentService _commentService;
 
-        public PostController(IPostService postService)
+        public PostController(IPostService postService, ICommentService commentService)
         {
             _postService = postService;
+            _commentService = commentService;
         }
 
         [HttpGet]
@@ -45,6 +47,17 @@ namespace Discussly.Api.Controllers
         public async Task<ActionResult<PostDto>> GetPost(Guid id, CancellationToken cancellationToken)
         {
             var result = await _postService.GetById(id, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
+
+        [HttpGet("{id:guid}/comments")]
+        public async Task<ActionResult<ICollection<CommentDto>>> GetPostComment(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _commentService.GetPostCommentsAsync(id, cancellationToken);
 
             if (result.IsFailure)
                 return BadRequest(result.Error);

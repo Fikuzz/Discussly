@@ -14,7 +14,7 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
                 .HasMaxLength(Comment.CONTENT_MAX_LENGTH)
                 .IsRequired();
 
-            builder.HasOne<User>()
+            builder.HasOne(c => c.Author)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(x => x.AuthorId)
                 .OnDelete(DeleteBehavior.SetNull);
