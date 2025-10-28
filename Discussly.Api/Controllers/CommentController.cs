@@ -56,5 +56,16 @@ namespace Discussly.Api.Controllers
 
             return Ok(result.Value);
         }
+
+        [HttpDelete("{id:guid}/delete")]
+        public async Task<ActionResult> DeleteComment(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _commentService.Delete(id, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
+        }
     }
 }

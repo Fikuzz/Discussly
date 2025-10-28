@@ -1,4 +1,5 @@
-﻿using Discussly.Core.DTOs;
+﻿using Discussly.Core.Commons;
+using Discussly.Core.DTOs;
 using Discussly.Core.DTOs.Post;
 using Discussly.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -12,12 +13,14 @@ namespace Discussly.Api.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
+        private readonly IPostVoteService _postVoteService;
         private readonly ICommentService _commentService;
 
-        public PostController(IPostService postService, ICommentService commentService)
+        public PostController(IPostService postService, ICommentService commentService, IPostVoteService postVoteService)
         {
             _postService = postService;
             _commentService = commentService;
+            _postVoteService = postVoteService;
         }
 
         [HttpGet]
@@ -58,6 +61,28 @@ namespace Discussly.Api.Controllers
         public async Task<ActionResult<ICollection<CommentDto>>> GetPostComment(Guid id, CancellationToken cancellationToken)
         {
             var result = await _commentService.GetPostCommentsAsync(id, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
+
+        [HttpPost("{id:guid}/vote")]
+        public async Task<ActionResult> SetVote(Guid id, VoteType voteType, CancellationToken cancellationToken)
+        {
+            var result = await _postVoteService.VoteAsync(id, voteType, cancellationToken);
+
+            if (result.IsFailure) 
+                return BadRequest(result.Error);
+
+            return Ok();
+        }
+
+        [HttpGet("{id:guid}/vote")]
+        public async Task<ActionResult<VoteType>> GetVote(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _postVoteService.GetVoteType(id, cancellationToken);
 
             if (result.IsFailure)
                 return BadRequest(result.Error);

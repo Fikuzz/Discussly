@@ -10,5 +10,6 @@ namespace Discussly.Core.Interfaces
         Task<Result<ICollection<CommentDto>>> GetAllAsync(CancellationToken cancellationToken);
         Task<Result<ICollection<CommentDto>>> GetPostCommentsAsync(Guid postId, CancellationToken cancellationToken);
         Task<Result<ICollection<CommentDto>>> GetSubCommentAsync(Guid commentId, CancellationToken cancellationToken);
+        Task<Result> Delete(Guid id,  CancellationToken cancellationToken);
     }
 }
