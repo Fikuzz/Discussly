@@ -47,6 +47,7 @@ namespace Discussly.Api.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         public async Task<ActionResult<PostDto>> GetPost(Guid id, CancellationToken cancellationToken)
         {
             var result = await _postService.GetById(id, cancellationToken);
@@ -58,6 +59,7 @@ namespace Discussly.Api.Controllers
         }
 
         [HttpGet("{id:guid}/comments")]
+        [AllowAnonymous]
         public async Task<ActionResult<ICollection<CommentDto>>> GetPostComment(Guid id, CancellationToken cancellationToken)
         {
             var result = await _commentService.GetPostCommentsAsync(id, cancellationToken);
