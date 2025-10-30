@@ -36,7 +36,7 @@ namespace Discussly.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreatePosts(CreatePostDto dto, CancellationToken cancellationToken)
+        public async Task<ActionResult<Guid>> CreatePosts([FromForm]CreatePostDto dto, CancellationToken cancellationToken)
         {
             var result = await _postService.CreateAsync(dto, cancellationToken);
 
