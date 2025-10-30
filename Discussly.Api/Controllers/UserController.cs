@@ -19,12 +19,14 @@ namespace Discussly.Api.Controllers
         IUserService _userService;
         private readonly IUserContext _userContext;
         private readonly IStorageService _storageService;
+        private readonly ICommunitySubscriptionService _communitySubscriptionService;
 
-        public UserController(IUserService userService, IUserContext userContext, IStorageService storageService)
+        public UserController(IUserService userService, IUserContext userContext, IStorageService storageService, ICommunitySubscriptionService communitySubscriptionService)
         {
             _userService = userService;
             _userContext = userContext;
             _storageService = storageService;
+            _communitySubscriptionService = communitySubscriptionService;
         }
 
         //Deleting
@@ -209,28 +211,16 @@ namespace Discussly.Api.Controllers
             return Ok();
         }
 
-        //Karma
-        [HttpPost("karma/increment")]
-        public async Task<ActionResult> IncrementKarma(CancellationToken cancellationToken)
+        //Subscription
+        [HttpGet("{userId:guid}/subscription")]
+        public async Task<ActionResult<ICollection<CommunityDto>>> GetCommunitySubscription(Guid userId, CancellationToken cancellationToken)
         {
-            var result = await _userService.UpdateKarmaAsync(1, cancellationToken);
+            var result = await _communitySubscriptionService.UserSubscriptionsAsync(userId, cancellationToken);
 
             if(result.IsFailure)
                 return BadRequest(result.Error);
 
-            return Ok();
+            return Ok(result.Value);
         }
-
-        [HttpPost("karma/decrement")]
-        public async Task<ActionResult> DecrementKarma(CancellationToken cancellationToken)
-        {
-            var result = await _userService.UpdateKarmaAsync(-1, cancellationToken);
-
-            if (result.IsFailure)
-                return BadRequest(result.Error);
-
-            return Ok();
-        }
-
     }
 }

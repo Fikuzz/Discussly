@@ -14,12 +14,14 @@ namespace Discussly.Api.Controllers
         private readonly ICommuityService _commuityService;
         private readonly IPostService _postService;
         private readonly IStorageService _storageService;
+        private readonly ICommunitySubscriptionService _communitySubscriptionService;
 
-        public CommunityController(ICommuityService commuityService, IStorageService storageService, IPostService postService)
+        public CommunityController(ICommuityService commuityService, IStorageService storageService, IPostService postService, ICommunitySubscriptionService communitySubscriptionService)
         {
             _commuityService = commuityService;
             _storageService = storageService;
             _postService = postService;
+            _communitySubscriptionService = communitySubscriptionService;
         }
 
         [HttpGet("{communityId:Guid}")]
@@ -65,6 +67,51 @@ namespace Discussly.Api.Controllers
                 return BadRequest(posts.Error);
 
             return Ok(posts.Value);
+        }
+
+        [HttpGet("{communityId:Guid}/subscriptions")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ICollection<MemberDto>>> GetSubscriptions(Guid communityId, CancellationToken cancellationToken)
+        {
+            var result = await _communitySubscriptionService.CommunitySubsribtionsAsync(communityId, cancellationToken);
+             
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
+
+        [HttpGet("{communityId:Guid}/checkSubscription")]
+        public async Task<ActionResult<bool>> CheckSubscription(Guid communityId, CancellationToken cancellationToken)
+        {
+            var result = await _communitySubscriptionService.CheckSubscriptionAsync(communityId, cancellationToken);
+
+            if (result.IsFailure) 
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
+
+        [HttpPost("{communityId:guid}/subscribe")]
+        public async Task<ActionResult> Subscribe(Guid communityId, CancellationToken cancellationToken)
+        {
+            var result = await _communitySubscriptionService.SubscribeAsync(communityId, cancellationToken);
+
+            if(result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
+        }
+
+        [HttpPost("{communityId:guid}/unsubscribe")]
+        public async Task<ActionResult> Unsubscribe(Guid communityId, CancellationToken cancellationToken)
+        {
+            var result = await _communitySubscriptionService.UnsubscribeAsync(communityId, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
         }
     }
 }
