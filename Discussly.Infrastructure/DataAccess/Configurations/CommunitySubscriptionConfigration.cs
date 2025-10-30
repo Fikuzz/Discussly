@@ -10,13 +10,13 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
         {
             builder.HasKey(x => new { x.UserId, x.CommunityId });
 
-            builder.HasOne<User>()
+            builder.HasOne(x => x.User)
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
-            builder.HasOne<Community>()
+            builder.HasOne(x => x.Community)
                 .WithMany(x => x.Members)
                 .HasForeignKey(x => x.CommunityId)
                 .OnDelete(DeleteBehavior.Cascade)

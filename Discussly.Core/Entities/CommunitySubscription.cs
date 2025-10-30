@@ -8,6 +8,8 @@ namespace Discussly.Core.Entities
         public Guid CommunityId { get; private set; }
         public DateTime SubscribedAt { get; private set; }
 
+        public virtual User User { get; private set; }
+        public virtual Community Community { get; private set; }
         private CommunitySubscription() { }
 
         public static Result<CommunitySubscription> Create(Guid userId, Guid communityId)
