@@ -14,7 +14,6 @@ namespace Discussly.Infrastructure.DataAccess
         public DbSet<CommentVote> CommentVotes => Set<CommentVote>();
         public DbSet<PostMediaAttachment> PostMediaAttachments => Set<PostMediaAttachment>();
         public DbSet<CommentMediaAttachment> CommentMediaAttachments => Set<CommentMediaAttachment>();
-        public DbSet<CommunityModerator> CommunityModerators => Set<CommunityModerator>();
         public DbSet<CommunitySubscription> CommunitySubscriptions => Set<CommunitySubscription>();
         public DbSet<Ban> Bans => Set<Ban>();
         public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
@@ -53,7 +52,6 @@ namespace Discussly.Infrastructure.DataAccess
         IQueryable<CommentVote> IDiscusslyDbContext.CommentVotes => CommentVotes;
         IQueryable<PostMediaAttachment> IDiscusslyDbContext.PostMediaAttachments => PostMediaAttachments;
         IQueryable<CommentMediaAttachment> IDiscusslyDbContext.CommentMediaAttachments => CommentMediaAttachments;
-        IQueryable<CommunityModerator> IDiscusslyDbContext.CommunityModerators => CommunityModerators;
         IQueryable<CommunitySubscription> IDiscusslyDbContext.CommunitySubscriptions => CommunitySubscriptions;
         IQueryable<Ban> IDiscusslyDbContext.Bans => Bans;
         IQueryable<PasswordResetToken> IDiscusslyDbContext.PasswordResetTokens => PasswordResetTokens;

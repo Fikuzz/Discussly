@@ -39,7 +39,6 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
 
             // Индексы для производительности
             builder.HasIndex(x => x.CreatedAt);
-            builder.HasIndex(x => x.Karma);
             builder.HasIndex(u => new { u.Email, u.Username });
         }
     }

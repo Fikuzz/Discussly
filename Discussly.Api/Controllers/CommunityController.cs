@@ -71,7 +71,7 @@ namespace Discussly.Api.Controllers
 
         [HttpGet("{communityId:Guid}/subscriptions")]
         [AllowAnonymous]
-        public async Task<ActionResult<ICollection<MemberDto>>> GetSubscriptions(Guid communityId, CancellationToken cancellationToken)
+        public async Task<ActionResult<ICollection<MemberDto?>>> GetSubscriptions(Guid communityId, CancellationToken cancellationToken)
         {
             var result = await _communitySubscriptionService.CommunitySubsribtionsAsync(communityId, cancellationToken);
              
@@ -82,7 +82,7 @@ namespace Discussly.Api.Controllers
         }
 
         [HttpGet("{communityId:Guid}/checkSubscription")]
-        public async Task<ActionResult<bool>> CheckSubscription(Guid communityId, CancellationToken cancellationToken)
+        public async Task<ActionResult<MemberDto>> CheckSubscription(Guid communityId, CancellationToken cancellationToken)
         {
             var result = await _communitySubscriptionService.CheckSubscriptionAsync(communityId, cancellationToken);
 
@@ -93,7 +93,7 @@ namespace Discussly.Api.Controllers
         }
 
         [HttpPost("{communityId:guid}/subscribe")]
-        public async Task<ActionResult> Subscribe(Guid communityId, CancellationToken cancellationToken)
+        public async Task<ActionResult<MemberDto>> Subscribe(Guid communityId, CancellationToken cancellationToken)
         {
             var result = await _communitySubscriptionService.SubscribeAsync(communityId, cancellationToken);
 

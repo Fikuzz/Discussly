@@ -1,4 +1,5 @@
-﻿using Discussly.Core.Entities;
+﻿using Discussly.Core.Commons;
+using Discussly.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,6 +22,9 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
                 .HasForeignKey(x => x.CommunityId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+
+            builder.Property(x => x.Role)
+                .HasDefaultValue(CommunityRoleType.User);
 
             builder.HasIndex(x => x.UserId);
             builder.HasIndex(x => x.CommunityId);

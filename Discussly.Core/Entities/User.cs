@@ -13,7 +13,6 @@ namespace Discussly.Core.Entities
         public string Email { get; private set; } = string.Empty;
         public string PasswordHash { get; private set; } = string.Empty;
         public string? AvatarFileName { get; private set; }
-        public int Karma { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public bool IsDeleted { get; private set; } = false;
         public DateTime? DeletedAt { get; private set; } = null;
@@ -40,7 +39,6 @@ namespace Discussly.Core.Entities
                 Email = email.Trim().ToLowerInvariant(),
                 PasswordHash = passwordHash,
                 AvatarFileName = avatarFileName,
-                Karma = 0,
                 CreatedAt = DateTime.UtcNow,
                 IsDeleted = false,
                 DeletedAt = null,
@@ -80,11 +78,6 @@ namespace Discussly.Core.Entities
                 return Result.Failure("Password hash cannot be empty");
 
             return Result.Success();
-        }
-
-        public void UpdateKarma(int change)
-        {
-            Karma += change;
         }
 
         public Result UpdateAvatar(string? newAvatarFileName)

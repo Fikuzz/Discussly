@@ -7,7 +7,7 @@ namespace Discussly.Core.Entities
         public Guid UserId { get; private set; }
         public Guid CommunityId { get; private set; }
         public DateTime SubscribedAt { get; private set; }
-
+        public CommunityRoleType Role { get; private set; }
         public virtual User User { get; private set; }
         public virtual Community Community { get; private set; }
         private CommunitySubscription() { }
@@ -18,7 +18,8 @@ namespace Discussly.Core.Entities
             {
                 UserId = userId,
                 CommunityId = communityId,
-                SubscribedAt = DateTime.UtcNow
+                SubscribedAt = DateTime.UtcNow,
+                Role = CommunityRoleType.User
             };
 
             return Result<CommunitySubscription>.Success(communitySubscription);

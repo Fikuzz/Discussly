@@ -3,6 +3,7 @@ using System;
 using Discussly.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Discussly.Infrastructure.Migrations
 {
     [DbContext(typeof(DiscusslyDbContext))]
-    partial class DiscusslyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251101102202_CommunityModeratorsAsMemberRole")]
+    partial class CommunityModeratorsAsMemberRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -370,6 +373,9 @@ namespace Discussly.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("Karma")
+                        .HasColumnType("integer");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -390,6 +396,8 @@ namespace Discussly.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("Karma");
 
                     b.HasIndex("Username")
                         .IsUnique();

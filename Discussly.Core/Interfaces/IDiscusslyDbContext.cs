@@ -12,7 +12,6 @@ namespace Discussly.Core.Interfaces
         IQueryable<CommentVote> CommentVotes { get; }
         IQueryable<PostMediaAttachment> PostMediaAttachments { get; }
         IQueryable<CommentMediaAttachment> CommentMediaAttachments { get; }
-        IQueryable<CommunityModerator> CommunityModerators { get; }
         IQueryable<CommunitySubscription> CommunitySubscriptions { get; }
         IQueryable<Ban> Bans { get; }
         IQueryable<PasswordResetToken> PasswordResetTokens { get; }

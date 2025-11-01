@@ -34,8 +34,5 @@ namespace Discussly.Core.Interfaces
 
         // Username
         Task<Result> UpdateUsernameAsync(string username, CancellationToken cancellationToken);
-
-        // Karma
-        Task<Result> UpdateKarmaAsync(int value, CancellationToken cancellationToken);
     }
 }
