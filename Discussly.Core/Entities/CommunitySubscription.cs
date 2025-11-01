@@ -24,5 +24,11 @@ namespace Discussly.Core.Entities
 
             return Result<CommunitySubscription>.Success(communitySubscription);
         }
+
+        public Result SetRole(CommunityRoleType role)
+        {
+            Role = role;
+            return Result.Success();
+        }
     }
 }
