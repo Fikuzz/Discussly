@@ -100,7 +100,7 @@ namespace Discussly.Api.Controllers
             if(result.IsFailure)
                 return BadRequest(result.Error);
 
-            return Ok();
+            return Ok(result.Value);
         }
 
         [HttpPost("{communityId:guid}/unsubscribe")]
