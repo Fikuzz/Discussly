@@ -29,6 +29,7 @@ builder.Services.AddScoped<ICommuityService, CommuityService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPostVoteService, PostVoteService>();
+builder.Services.AddScoped<ICommentVoteService, CommentVoteService>();
 builder.Services.AddScoped<ICommunitySubscriptionService, CommunitySubscriptionService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IUserContext, UserContext>();
