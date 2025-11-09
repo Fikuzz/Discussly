@@ -18,6 +18,7 @@ namespace Discussly.Core.Entities
         // НАВИГАЦИОННЫЕ СВОЙСТВА:
         public virtual User Author { get; private set; }
         public virtual ICollection<CommentMediaAttachment> MediaAttachments { get; private set; } = new List<CommentMediaAttachment>();
+        public virtual ICollection<CommentVote> Votes { get; private set; } = new List<CommentVote>();
         public virtual ICollection<Comment> Replies { get; private set; } = new List<Comment>();
 
         private Comment() { }

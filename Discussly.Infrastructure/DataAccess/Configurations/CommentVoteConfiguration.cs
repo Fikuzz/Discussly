@@ -16,7 +16,7 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne<Comment>()
-                .WithMany()
+                .WithMany(c => c.Votes)
                 .HasForeignKey(x => x.CommentId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
