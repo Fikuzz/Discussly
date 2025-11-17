@@ -67,8 +67,8 @@ namespace Discussly.Application.Services
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var comments = await _context.Comments.Select(x =>
-                    new CommentDto()
+                var comments = await _context.Comments
+                    .Select(x => new CommentDto()
                     {
                         Id = x.Id,
                         Text = x.ContentText,
@@ -96,6 +96,47 @@ namespace Discussly.Application.Services
             {
                 _logger.LogError(ex, "Error when receiving comments");
                 return Result<ICollection<CommentDto>>.Failure("Error when receiving comments");
+            }
+        }
+        public async Task<Result<CommentDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var comment = await _context.Comments
+                    .Select(x => new CommentDto()
+                    {
+                        Id = x.Id,
+                        Text = x.ContentText,
+                        PostId = x.PostId,
+                        Author = new UserDto()
+                        {
+                            Id = x.Author.Id,
+                            Username = x.Author.Username,
+                            AvatarFileName = x.Author.AvatarFileName
+                        },
+                        CreatedAt = x.CreatedAt,
+                        CommentCount = x.Replies.Count(),
+                        Score = x.Votes.Sum(v => (short)v.VoteType),
+                        IsEditing = x.IsEdited
+                    })
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (comment == null)
+                    return Result<CommentDto>.Failure("Comment not found.");
+
+                return Result.Success(comment);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Comment retrieval was cancelled");
+                return Result<CommentDto>.Failure("Comment retrieval was cancelled");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error when receiving comment");
+                return Result<CommentDto>.Failure("Error when receiving comment");
             }
         }
 

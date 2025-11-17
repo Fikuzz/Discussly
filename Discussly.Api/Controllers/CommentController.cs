@@ -48,6 +48,18 @@ namespace Discussly.Api.Controllers
             return Ok(result.Value);
         }
 
+        [HttpGet("{id:guid}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<CommentDto>> GetById(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _commentService.GetByIdAsync(id, cancellationToken);
+
+            if (result.IsFailure) 
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
+
         [HttpGet("{id:guid}/subcomments")]
         [AllowAnonymous]
         public async Task<ActionResult<ICollection<CommentDto>>> GetSubComment(Guid id, CancellationToken cancellationToken)
