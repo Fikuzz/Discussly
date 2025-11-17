@@ -19,3 +19,7 @@ A Reddit-like discussion platform built with modern web technologies. This repos
 - ✅ Real-time notifications
 - ✅ RESTful API endpoints
 - ✅ Docker containerization
+
+## 🌐 Related Projects
+
+- [**Discussly.Client**](https://github.com/Fikuzz/Discussly.Client) - Frontend client application
