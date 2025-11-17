@@ -283,7 +283,7 @@ namespace Discussly.Application.Services
                         Username = u.Username,
                         Email = u.Email,
                         AvatarFileName = u.AvatarFileName,
-                        Karma = u.Posts.Sum(p => p.Votes.Sum(v => (short)v.VoteType)),
+                        Karma = u.Posts.Sum(p => p.Votes.Sum(v => (short)v.VoteType)) + u.Comments.Sum(c => c.Votes.Sum(v => (short)v.VoteType)),
                         CreatedAt = u.CreatedAt,
                         PostCount = u.Posts.Count(),
                         CommentCount = u.Comments.Count()
