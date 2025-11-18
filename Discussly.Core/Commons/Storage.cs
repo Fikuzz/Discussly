@@ -4,5 +4,6 @@
     {
         UserAvatar = 0,
         CommunityAvatar = 1,
+        PostMedia = 2
     }
 }

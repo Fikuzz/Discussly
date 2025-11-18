@@ -1,8 +1,10 @@
-﻿using Discussly.Core.Commons;
+﻿using Discussly.Application.Interfaces;
+using Discussly.Core.Commons;
 using Discussly.Core.DTOs;
 using Discussly.Core.DTOs.Post;
 using Discussly.Core.Entities;
 using Discussly.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,12 +15,14 @@ namespace Discussly.Application.Services
         private readonly IUserContext _userContext;
         private readonly IDiscusslyDbContext _context;
         private readonly ILogger<PostService> _logger;
+        private readonly IStorageService _storageService;
 
-        public PostService(IUserContext userContext, IDiscusslyDbContext context, ILogger<PostService> logger)
+        public PostService(IUserContext userContext, IDiscusslyDbContext context, ILogger<PostService> logger, IStorageService storageService)
         {
             _context = context;
             _userContext = userContext;
             _logger = logger;
+            _storageService = storageService;
         }
 
         public async Task<Result<Guid>> CreateAsync(CreatePostDto dto, CancellationToken cancellationToken)
@@ -49,6 +53,37 @@ namespace Discussly.Application.Services
 
                 await _context.AddAsync(post.Value);
                 await _context.SaveChangesAsync(cancellationToken);
+
+                if(dto.MediaFiles != null) {
+                    int order = 0;
+                    foreach (IFormFile file in dto.MediaFiles)
+                    {
+                        var fileId = Guid.NewGuid();
+                        var result = await _storageService.SaveFileAsync(fileId, file, Storage.PostMedia);
+
+                        if(result.IsFailure)
+                        {
+                            _logger.LogError(result.Error);
+                            continue;
+                        }
+
+                        var metadata = new
+                        {
+                            Extension = result.Value.Extension,
+                        };
+
+                        var postMedia = PostMediaAttachment.Create(fileId, post.Value.Id, result.Value.FileName, result.Value.FileType, result.Value.FileSize, order, metadata);
+                        if (postMedia.IsFailure)
+                        {
+                            _logger.LogError(postMedia.Error);
+                            continue;
+                        }
+                        order++;
+                        await _context.AddAsync(postMedia.Value);
+                    }
+                    await _context.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation($"{order} media files uploaded");
+                }
 
                 _logger.LogInformation($"Post created by user {userId}");
                 return Result.Success(post.Value.Id);
@@ -93,7 +128,7 @@ namespace Discussly.Application.Services
                         CreatedAt = p.CreatedAt,
                         MediaPreviewFileName = p.MediaAttachments
                             .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => ma.FileUrl)
+                            .Select(ma => ma.FileName)
                             .FirstOrDefault()
                     })
                     .ToListAsync(cancellationToken);
@@ -148,7 +183,7 @@ namespace Discussly.Application.Services
                         CreatedAt = p.CreatedAt,
                         MediaPreviewFileName = p.MediaAttachments
                             .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => ma.FileUrl)
+                            .Select(ma => ma.FileName)
                             .FirstOrDefault()
                     })
                     .FirstOrDefaultAsync(cancellationToken);
@@ -194,7 +229,7 @@ namespace Discussly.Application.Services
                         CreatedAt = p.CreatedAt,
                         MediaPreviewFileName = p.MediaAttachments
                             .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => ma.FileUrl)
+                            .Select(ma => ma.FileName)
                             .FirstOrDefault()
                     }).ToListAsync(cancellationToken);
 

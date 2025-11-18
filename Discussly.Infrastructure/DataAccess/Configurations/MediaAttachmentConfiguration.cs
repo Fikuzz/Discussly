@@ -10,16 +10,8 @@ namespace Discussly.Infrastructure.DataAccess.Configurations
         {
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.FileUrl)
-                .HasMaxLength(MediaAttachment.MAX_URL_LENGTH)
-                .IsRequired();
-
             builder.Property(x => x.FileType)
                 .HasConversion<short>()
-                .IsRequired();
-
-            builder.Property(x => x.MimeType)
-                .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(x => x.FileSize)

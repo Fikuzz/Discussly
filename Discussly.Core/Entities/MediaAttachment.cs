@@ -6,36 +6,23 @@ namespace Discussly.Core.Entities
 {
     public abstract class MediaAttachment
     {
-        public const int MAX_URL_LENGTH = 2000;
         public const int MAX_FILE_SIZE = 100 * 1024 * 1024;
 
         public Guid Id { get; protected set; }
-        public string FileUrl { get; protected set; } = string.Empty;
+        public string FileName { get; protected set; } = string.Empty;
         public FileType FileType { get; protected set; }
-        public string MimeType { get; protected set; } = string.Empty;
         public long FileSize { get; protected set; }
-        public string? ThumbnailUrl { get; protected set; }
-        public int? Duration { get; protected set; }
         public int SortOrder { get; protected set; }
+
         [Column(TypeName = "jsonb")]
         public string Metadata { get; protected set; } = string.Empty;
 
         protected MediaAttachment() { }
 
-        protected static Result ValidateCommon(string fileUrl, long fileSize, int sortOrder)
+        protected static Result ValidateCommon(long fileSize, int sortOrder)
         {
-            return ValidateUrl(fileUrl)
-                .Combine(ValidateFileSize(fileSize))
+            return ValidateFileSize(fileSize)
                 .Combine(ValidateSortOrder(sortOrder));
-        }
-
-        private static Result ValidateUrl(string url)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-                return Result.Failure("File URL cannot be empty");
-            if (url.Length > MAX_URL_LENGTH)
-                return Result.Failure($"File URL must not exceed {MAX_URL_LENGTH} characters");
-            return Result.Success();
         }
 
         private static Result ValidateFileSize(long fileSize)

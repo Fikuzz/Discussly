@@ -157,7 +157,7 @@ namespace Discussly.Api.Controllers
         
         //Avatar
         [HttpPut("avatar")]
-        public async Task<ActionResult> UpdateAvatar(IFormFile formFile, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> UpdateAvatar(IFormFile formFile, CancellationToken cancellationToken)
         {
             if (_userContext.UserId == null)
                 return BadRequest("Couldn't get User Id");
@@ -165,17 +165,17 @@ namespace Discussly.Api.Controllers
             var oldAvatarName = await _userService.GetUserAvatarNameAsync(_userContext.UserId.Value, cancellationToken);
             if (oldAvatarName.IsSuccess && oldAvatarName.Value != null)
             {
-                _storageService.DeleteMedia(oldAvatarName.Value, Storage.UserAvatar);
+                _storageService.DeleteFile(oldAvatarName.Value, Storage.UserAvatar, FileType.Image);
             }
 
-            var storageResult = await _storageService.SaveMediaAsync(_userContext.UserId.Value, Storage.UserAvatar, formFile);
+            var storageResult = await _storageService.SaveFileAsync(_userContext.UserId.Value, formFile, Storage.UserAvatar);
 
             if(storageResult.IsFailure)
                 return BadRequest(storageResult.Error);
 
-            var result = await _userService.UpdateAvatar(storageResult.Value, cancellationToken);
+            var result = await _userService.UpdateAvatar(storageResult.Value.FileName, cancellationToken);
 
-            return Ok(storageResult.Value);
+            return Ok(storageResult.Value.FileName);
         }
 
         [HttpDelete("avatar")]
@@ -187,7 +187,7 @@ namespace Discussly.Api.Controllers
             var oldAvatarName = await _userService.GetUserAvatarNameAsync(_userContext.UserId.Value, cancellationToken);
             if (oldAvatarName.IsSuccess && oldAvatarName.Value != null)
             {
-                _storageService.DeleteMedia(oldAvatarName.Value, Storage.UserAvatar);
+                _storageService.DeleteFile(oldAvatarName.Value, Storage.UserAvatar, FileType.Image);
             }
 
             var result = await _userService.UpdateAvatar(null, cancellationToken);

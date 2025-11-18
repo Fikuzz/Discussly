@@ -1,4 +1,5 @@
-﻿using Discussly.Core.Commons;
+﻿using Discussly.Application.Interfaces;
+using Discussly.Core.Commons;
 using Discussly.Core.DTOs;
 using Discussly.Core.DTOs.Post;
 using Discussly.Core.Interfaces;

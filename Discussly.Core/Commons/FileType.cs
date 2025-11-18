@@ -2,8 +2,10 @@
 {
     public enum FileType : short
     {
-        Photo = 0,
+        Unknown = -1,
+        Image = 0,
         Video = 1,
-        Audio = 2
+        Audio = 2,
+        Document = 3
     }
 }

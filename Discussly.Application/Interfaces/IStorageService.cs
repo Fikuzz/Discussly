@@ -1,11 +1,14 @@
-﻿using Discussly.Core.Commons;
+﻿using Discussly.Application.Settings;
+using Discussly.Core.Commons;
+using Discussly.Core.DTOs.File;
 using Microsoft.AspNetCore.Http;
 
 namespace Discussly.Application.Interfaces
 {
     public interface IStorageService
     {
-        Task<Result<string>> SaveMediaAsync(Guid Id, Storage storage, IFormFile file);
-        Result DeleteMedia(string fileName, Storage storage);
+        Task<Result<FileInfoDto>> SaveFileAsync(Guid fileId, IFormFile file, Storage storage);
+
+        Result DeleteFile(string fileName, Storage storage, FileType fileType);
     }
 }

@@ -1,68 +1,132 @@
 ﻿using Discussly.Application.Interfaces;
 using Discussly.Application.Settings;
 using Discussly.Core.Commons;
+using Discussly.Core.DTOs.File;
+using Discussly.Core.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic.FileIO;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace Discussly.Application.Services
 {
     public class StorageService : IStorageService
     {
-        private StorageSettings _settings;
-        public StorageService(IOptions<StorageSettings> settings)
+        private readonly StorageSettings _settings;
+        private readonly ILogger<StorageService> _logger;
+        public StorageService(IOptions<StorageSettings> settings, ILogger<StorageService> logger)
         {
             _settings = settings.Value;
+            _logger = logger;
         }
 
-        public async Task<Result<string>> SaveMediaAsync(Guid userId, Storage storage, IFormFile file)
+        public async Task<Result<FileInfoDto>> SaveFileAsync(Guid fileId, IFormFile file, Storage storage)
         {
-            MediaSettings settings = GetSettings(storage);
+            var fileType = GetFileTypeFromMime(file);
+
+            var settings = GetFileSettings(storage, fileType);
+
+            var validate = ValidateFile(file, settings);
+            if (validate.IsFailure)
+                return Result<FileInfoDto>.Failure(validate.Error);
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (fileType == FileType.Image)
+            {
+                if(settings is ImageSettings imageSettings)
+                {
+                    extension = imageSettings.SaveFileAs;
+                }
+            }
+            var fileName = await GenerateFileNameAsync(fileId, file, extension);
+            
+            var result = await SaveFile(file, fileName, settings, fileType);
+
+            var fileInfoDto = new FileInfoDto()
+            {
+                FileName = fileName,
+                FileType = fileType,
+                FileSize = result.Value,
+                CreatedAt = DateTime.UtcNow,
+                Extension = extension
+            };
+
+            return Result.Success(fileInfoDto);
+        }
+
+        public Result DeleteFile(string fileName, Storage storage, FileType fileType)
+        {
+            var settings = GetFileSettings(storage, fileType);
+
+            var FullFilePath = Path.Combine(_settings.BasePath, settings.Path, fileName);
+            if (File.Exists(FullFilePath))
+            {
+                File.Delete(FullFilePath);
+                _logger.LogInformation("File deleted: {FileName} from {Storage}", fileName, storage);
+            }
+            else
+            {
+                _logger.LogWarning("File not found for deletion: {FileName} in {Storage}", fileName, storage);
+            }
+
+            return Result.Success();
+        }
+
+        private FileSettings GetFileSettings(Storage storage, FileType fileType)
+        {
+            return storage switch
+            {
+                Storage.UserAvatar => _settings.Avatars,
+                Storage.CommunityAvatar => _settings.CommunityAvatars,
+                Storage.PostMedia => fileType switch
+                {
+                    FileType.Image => _settings.PostImages,
+                    FileType.Video => _settings.PostVideos,
+                    _ => _settings.Attachments
+                },
+                _ => _settings.Attachments
+            };
+        }
+
+        private FileType GetFileTypeFromMime(IFormFile file)
+        {
+            var mimeType = file.ContentType.ToLowerInvariant();
+
+            if (mimeType.StartsWith("image/"))
+                return FileType.Image;
+            else if (mimeType.StartsWith("video/"))
+                return FileType.Video;
+            else if (mimeType.StartsWith("audio/"))
+                return FileType.Audio;
+            else if (mimeType.Contains("pdf") || mimeType.Contains("msword") ||
+                     mimeType.Contains("excel") || mimeType.Contains("powerpoint") ||
+                     mimeType.Contains("text/"))
+                return FileType.Document;
+            else
+                return FileType.Unknown;
+        }
+
+        private Result ValidateFile(IFormFile file, FileSettings settings)
+        {
+            if (file == null || file.Length == 0)
+                return Result.Failure("File is empty");
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension) || !settings.AllowedFormats.Contains(extension))
+                return Result.Failure($"File format is not supported.");
 
             if (file.Length > settings.MaxFileSize)
-                Result<string>.Failure($"File too large. Max size: {settings.MaxFileSize} bytes");
+                return Result.Failure($"The file is over {settings.MaxFileSize / 1024 / 1024}Mb");
 
-            var extension = Path.GetExtension(file.FileName).ToLower();
-            if (!settings.AllowedFormats.Contains(extension))
-                Result<string>.Failure($"Invalid format. Allowed: {string.Join(", ", settings.AllowedFormats)}");
-
-            var avatarsPath = GetMediaPath(storage);
-
-            var hashString = await GenerateAvatarHashAsync(file);
-
-            var fileName = $"{hashString}-{userId}{settings.SaveFileAs}";
-            var filePath = Path.Combine(avatarsPath, fileName);
-
-            await using var fileStream = new FileStream(filePath, FileMode.Create);
-            await ResizeAndSaveImageAsync(file, fileStream, settings.Width, settings.Height);
-
-            return Result.Success(fileName);
-        }
-        public Result DeleteMedia(string fileName, Storage storage)
-        {
-            var avatersPath = GetMediaPath(storage);
-
-            var filePath = Path.Combine(avatersPath, fileName);
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-                return Result.Success();
-            }
-            return Result.Failure("File not exist");
+            return Result.Success();
         }
 
-        private string GetMediaPath(Storage storage)
-        {
-            var basePath = Path.Combine(_settings.BasePath, GetSettings(storage).Path);
-
-            if (!Directory.Exists(basePath))
-                Directory.CreateDirectory(basePath);
-
-            return basePath;
-        }
-        private async Task<string> GenerateAvatarHashAsync(IFormFile file)
+        private async Task<string> GenerateFileNameAsync(Guid id, IFormFile file, string extension)
         {
             using var stream = new MemoryStream();
             await file.CopyToAsync(stream);
@@ -72,31 +136,106 @@ namespace Discussly.Application.Services
             var hash = md5.ComputeHash(stream);
             var hashString = BitConverter.ToString(hash).Replace("-", "").ToLower();
 
-            return hashString;
+            return $"{hashString}-{id}{extension}";
         }
-        private async Task ResizeAndSaveImageAsync(IFormFile file, Stream outputStream, int width, int height)
+
+        private async Task<Result<long>> SaveFile(IFormFile file, string fileName, FileSettings fileSettings, FileType fileType)
         {
+            var basePath = Path.Combine(_settings.BasePath, fileSettings.Path);
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
+            var fullFilePath = Path.Combine(basePath, fileName);
+
+            switch (fileType)
+            {
+                case FileType.Image:
+                    if(fileSettings is ImageSettings imageSettings)
+                    {
+                        var result = await ResizeAndSaveImageAsync(file, fullFilePath, imageSettings.Width, imageSettings.Height);
+                        return result;
+                    }
+                    else
+                    {
+                        return Result<long>.Failure("The file cannot be saved");
+                    }
+
+                case FileType.Video:
+                    if(fileSettings is VideoSettings videoSettings)
+                    {
+                        var result = await SaveVideoAsync(file, fullFilePath, videoSettings.Compress);
+                        return result;
+                    }
+                    else
+                    {
+                        return Result<long>.Failure("The file cannot be saved");
+                    }
+
+                default:
+                    return Result<long>.Failure("Couldn't determine the file type");
+            }
+        }
+
+        private async Task<Result<long>> ResizeAndSaveImageAsync(IFormFile file, string fullFileName, int width, int height)
+        {
+            await using var fileStream = new FileStream(fullFileName, FileMode.Create);
+
             using var image = await SixLabors.ImageSharp.Image.LoadAsync(file.OpenReadStream());
             image.Mutate(x => x.Resize(new ResizeOptions
             {
                 Size = new SixLabors.ImageSharp.Size(width, height),
                 Mode = ResizeMode.Crop
             }));
-            await image.SaveAsync(outputStream, new JpegEncoder());
-        }
-        private MediaSettings GetSettings(Storage storage)
-        {
-            switch (storage)
-            {
-                case Storage.UserAvatar:
-                    return _settings.Avatars;
+            await image.SaveAsync(fileStream, new JpegEncoder());
 
-                case Storage.CommunityAvatar:
-                    return _settings.CommunityAvatars;
-                
-                default:
-                    return _settings.Avatars;
+            await fileStream.FlushAsync();
+            fileStream.Close();
+
+            var fileInfo = new FileInfo(fullFileName);
+            _logger.LogInformation($"Image saved as {fullFileName}, Size: {fileInfo.Length} bytes");
+            return Result.Success(fileInfo.Length);
+        }
+
+        private async Task<Result<long>> SaveVideoAsync(IFormFile file, string fullFileName, bool compress)
+        {
+            try
+            {
+                long fileSize;
+
+                if (compress)
+                {
+                    // Сжатая версия
+                    fileSize = await CompressVideoAsync(file, fullFileName);
+                }
+                else
+                {
+                    await using var fileStream = new FileStream(fullFileName, FileMode.Create);
+                    await file.CopyToAsync(fileStream);
+
+                    var fileInfo = new FileInfo(fullFileName);
+                    fileSize = fileInfo.Length;
+                }
+
+                _logger.LogInformation($"Video saved as {fullFileName}, Size: {fileSize} bytes");
+                return Result.Success(fileSize);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Video save failed");
+                return Result<long>.Failure("Video save failed");
+            }
+        }
+
+        private async Task<long> CompressVideoAsync(IFormFile file, string outputPath)
+        {
+            // Временная реализация - просто копируем
+            await using var fileStream = new FileStream(outputPath, FileMode.Create);
+            await file.CopyToAsync(fileStream);
+
+            var fileInfo = new FileInfo(outputPath);
+            return fileInfo.Length;
+
+            // TODO: Реализовать настоящее сжатие через FFmpeg
+            // return await _ffmpegService.CompressAndGetSizeAsync(file, outputPath);
         }
     }
 }

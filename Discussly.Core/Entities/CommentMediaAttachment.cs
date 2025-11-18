@@ -10,10 +10,9 @@ namespace Discussly.Core.Entities
         private CommentMediaAttachment() { }
 
         public static Result<CommentMediaAttachment> Create(
-            Guid commentId, string fileUrl, FileType fileType, string mimeType,
-            long fileSize, string? thumbnailUrl, int? duration, int sortOrder, object metadata)
+            Guid commentId, FileType fileType, long fileSize, int sortOrder, object metadata)
         {
-            var validateResult = ValidateCommon(fileUrl, fileSize, sortOrder);
+            var validateResult = ValidateCommon(fileSize, sortOrder);
             if (validateResult.IsFailure)
                 return Result<CommentMediaAttachment>.Failure(validateResult.Error);
 
@@ -21,12 +20,8 @@ namespace Discussly.Core.Entities
             {
                 Id = Guid.NewGuid(),
                 CommentId = commentId,
-                FileUrl = fileUrl.Trim(),
                 FileType = fileType,
-                MimeType = mimeType.Trim(),
                 FileSize = fileSize,
-                ThumbnailUrl = thumbnailUrl?.Trim(),
-                Duration = duration >= 0 ? duration : null,
                 SortOrder = sortOrder,
                 Metadata = JsonSerializer.Serialize(metadata)
             };
