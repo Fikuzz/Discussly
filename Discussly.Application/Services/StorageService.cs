@@ -50,10 +50,14 @@ namespace Discussly.Application.Services
             var fileInfoDto = new FileInfoDto()
             {
                 FileName = fileName,
+                FilePath = settings.Path,
                 FileType = fileType,
                 FileSize = result.Value,
                 CreatedAt = DateTime.UtcNow,
-                Extension = extension
+                Metadata = new
+                {
+                    Extension = extension
+                }
             };
 
             return Result.Success(fileInfoDto);

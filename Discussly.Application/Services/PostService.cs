@@ -38,7 +38,7 @@ namespace Discussly.Application.Services
             var community = await _context.Communities.FirstOrDefaultAsync(c => c.Id == dto.CommunityId);
             if (community == null)
                 return Result<Guid>.Failure("Community not found");
-            
+
             try
             {
                 var post = Post.Create(
@@ -54,25 +54,28 @@ namespace Discussly.Application.Services
                 await _context.AddAsync(post.Value);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                if(dto.MediaFiles != null) {
+                if (dto.MediaFiles != null) {
                     int order = 0;
                     foreach (IFormFile file in dto.MediaFiles)
                     {
                         var fileId = Guid.NewGuid();
                         var result = await _storageService.SaveFileAsync(fileId, file, Storage.PostMedia);
 
-                        if(result.IsFailure)
+                        if (result.IsFailure)
                         {
                             _logger.LogError(result.Error);
                             continue;
                         }
 
-                        var metadata = new
-                        {
-                            Extension = result.Value.Extension,
-                        };
-
-                        var postMedia = PostMediaAttachment.Create(fileId, post.Value.Id, result.Value.FileName, result.Value.FileType, result.Value.FileSize, order, metadata);
+                        var postMedia = PostMediaAttachment.Create(
+                            fileId, 
+                            post.Value.Id, 
+                            result.Value.FileName, 
+                            result.Value.FileType, 
+                            result.Value.FilePath, 
+                            result.Value.FileSize, 
+                            order, 
+                            result.Value.Metadata);
                         if (postMedia.IsFailure)
                         {
                             _logger.LogError(postMedia.Error);
@@ -128,7 +131,7 @@ namespace Discussly.Application.Services
                         CreatedAt = p.CreatedAt,
                         MediaPreviewFileName = p.MediaAttachments
                             .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => ma.FileName)
+                            .Select(ma => Path.Combine(ma.Path, ma.FileName))
                             .FirstOrDefault()
                     })
                     .ToListAsync(cancellationToken);
@@ -183,7 +186,7 @@ namespace Discussly.Application.Services
                         CreatedAt = p.CreatedAt,
                         MediaPreviewFileName = p.MediaAttachments
                             .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => ma.FileName)
+                            .Select(ma => Path.Combine(ma.Path, ma.FileName))
                             .FirstOrDefault()
                     })
                     .FirstOrDefaultAsync(cancellationToken);
@@ -229,7 +232,7 @@ namespace Discussly.Application.Services
                         CreatedAt = p.CreatedAt,
                         MediaPreviewFileName = p.MediaAttachments
                             .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => ma.FileName)
+                            .Select(ma => Path.Combine(ma.Path, ma.FileName))
                             .FirstOrDefault()
                     }).ToListAsync(cancellationToken);
 
@@ -246,6 +249,80 @@ namespace Discussly.Application.Services
             {
                 _logger.LogError(ex, "Error getting posts");
                 return Result<ICollection<PostDto>>.Failure("Error getting post");
+            }
+        }
+
+        public async Task<Result> DeletePostAsync(Guid postId, CancellationToken cancellationToken)
+        {
+            if (!_userContext.IsAuthenticated)
+                return Result.Failure("User not authenticated.");
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var userId = _userContext.UserId;
+
+                var post = await _context.Posts
+                    .Include(x => x.MediaAttachments)
+                    .FirstOrDefaultAsync(x => x.Id == postId, cancellationToken);
+                if (post == null)
+                    return Result.Failure($"post {postId} now found.");
+
+                //TODO: accept for admin and moder
+                if (post.AuthorId != userId)
+                    return Result.Failure("Not enough rights to delete this post.");
+
+                foreach (PostMediaAttachment media in post.MediaAttachments)
+                {
+                    var storageResult = _storageService.DeleteFile(media.FileName, Storage.PostMedia, media.FileType);
+                    if (storageResult.IsFailure)
+                    {
+                        _logger.LogWarning($"Error deleting file {media.FileName}: {storageResult.Error}");
+                        continue;
+                    }
+                    _context.Remove(media);
+                }
+
+                _context.Remove(post);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Post deleting was canceled.");
+                return Result.Failure("Post deleting was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred when deleting the post {postId}.");
+                return Result.Failure("Error occurred when deleting the post.");
+            }
+        }
+
+        public async Task<Result<ICollection<MediaDto>>> GetMedia(Guid postId,  CancellationToken cancellationToken)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var media = await _context.PostMediaAttachments
+                    .Where(x => x.PostId == postId)
+                    .ToListAsync(cancellationToken);
+
+                var mediaDtos = MediaDto.MapList(media);
+
+                return Result.Success(mediaDtos);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Receiving a media has been canceled.");
+                return Result<ICollection<MediaDto>>.Failure("Receiving a media has been canceled.");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error receiving post media");
+                return Result<ICollection<MediaDto>>.Failure("Error receiving post media");
             }
         }
     }

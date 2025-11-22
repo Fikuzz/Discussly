@@ -92,5 +92,28 @@ namespace Discussly.Api.Controllers
 
             return Ok(result.Value);
         }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult> DeletePost(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _postService.DeletePostAsync(id, cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok();
+        }
+
+        [HttpGet("{id:guid}/media")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ICollection<MediaDto>>> GetPostMedia(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _postService.GetMedia(id, cancellationToken);
+
+            if(result.IsFailure)
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
     }
 }

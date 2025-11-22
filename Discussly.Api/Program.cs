@@ -6,6 +6,7 @@ using Discussly.Core.Interfaces;
 using Discussly.Infrastructure.DataAccess;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -155,7 +156,12 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    RequestPath = "/media",
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.WebRootPath))
+});
 
 app.MapControllers();
 

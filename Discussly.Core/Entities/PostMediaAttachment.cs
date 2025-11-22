@@ -9,7 +9,7 @@ namespace Discussly.Core.Entities
         private PostMediaAttachment() { }
 
         public static Result<PostMediaAttachment> Create(
-           Guid id, Guid postId, string FileName, FileType fileType, long fileSize, int sortOrder, object metadata)
+           Guid id, Guid postId, string FileName, FileType fileType, string path, long fileSize, int sortOrder, object metadata)
         {
             var validateResult = ValidateCommon(fileSize, sortOrder);
             if (validateResult.IsFailure)
@@ -19,6 +19,7 @@ namespace Discussly.Core.Entities
             {
                 Id = id,
                 FileName = FileName,
+                Path = path,
                 PostId = postId,
                 FileType = fileType,
                 FileSize = fileSize,

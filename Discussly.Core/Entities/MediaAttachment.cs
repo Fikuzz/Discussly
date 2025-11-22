@@ -11,6 +11,7 @@ namespace Discussly.Core.Entities
         public Guid Id { get; protected set; }
         public string FileName { get; protected set; } = string.Empty;
         public FileType FileType { get; protected set; }
+        public string Path { get; protected set; } = string.Empty;
         public long FileSize { get; protected set; }
         public int SortOrder { get; protected set; }
 

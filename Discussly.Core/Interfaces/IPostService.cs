@@ -10,5 +10,7 @@ namespace Discussly.Core.Interfaces
         Task<Result<ICollection<PostDto>>> GetAll(CancellationToken cancellationToken);
         Task<Result<ICollection<PostDto>>> GetCommunityPost(Guid communityId, CancellationToken cancellationToken);
         Task<Result<PostDto>> GetById(Guid id, CancellationToken cancellationToken);
+        Task<Result> DeletePostAsync(Guid postId, CancellationToken cancellationToken);
+        Task<Result<ICollection<MediaDto>>> GetMedia(Guid postId, CancellationToken cancellationToken);
     }
 }
