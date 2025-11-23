@@ -129,10 +129,7 @@ namespace Discussly.Application.Services
                         Score = p.Votes.Sum(v => (int)v.VoteType),
                         CommentCount = p.Comments.Count,
                         CreatedAt = p.CreatedAt,
-                        MediaPreviewFileName = p.MediaAttachments
-                            .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => Path.Combine(ma.Path, ma.FileName))
-                            .FirstOrDefault()
+                        Media = MediaDto.MapList(p.MediaAttachments)
                     })
                     .ToListAsync(cancellationToken);
 
@@ -184,10 +181,7 @@ namespace Discussly.Application.Services
                         Score = p.Votes.Sum(v => (int)v.VoteType),
                         CommentCount = p.Comments.Count,
                         CreatedAt = p.CreatedAt,
-                        MediaPreviewFileName = p.MediaAttachments
-                            .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => Path.Combine(ma.Path, ma.FileName))
-                            .FirstOrDefault()
+                        Media = MediaDto.MapList(p.MediaAttachments)
                     })
                     .FirstOrDefaultAsync(cancellationToken);
 
@@ -230,10 +224,7 @@ namespace Discussly.Application.Services
                         Score = p.Votes.Sum(v => (int)v.VoteType),
                         CommentCount = p.Comments.Count,
                         CreatedAt = p.CreatedAt,
-                        MediaPreviewFileName = p.MediaAttachments
-                            .OrderBy(ma => ma.SortOrder)
-                            .Select(ma => Path.Combine(ma.Path, ma.FileName))
-                            .FirstOrDefault()
+                        Media = MediaDto.MapList(p.MediaAttachments)
                     }).ToListAsync(cancellationToken);
 
                 return posts != null

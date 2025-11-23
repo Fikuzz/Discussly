@@ -10,6 +10,6 @@
         public int Score { get; set; }
         public int CommentCount { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string? MediaPreviewFileName { get; set; }
+        public IEnumerable<MediaDto> Media { get; set; } = new List<MediaDto>();
     }
 }
