@@ -10,5 +10,6 @@
         public int CommentCount { get; set; }
         public int Score { get; set; }
         public bool IsEditing { get; set; } = false;
+        public string? MediaFileName { get; set; }
     }
 }

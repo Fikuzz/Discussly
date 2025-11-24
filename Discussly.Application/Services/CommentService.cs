@@ -1,4 +1,5 @@
-﻿using Discussly.Core.Commons;
+﻿using Discussly.Application.Interfaces;
+using Discussly.Core.Commons;
 using Discussly.Core.DTOs;
 using Discussly.Core.DTOs.Post;
 using Discussly.Core.Entities;
@@ -17,13 +18,15 @@ namespace Discussly.Application.Services
     {
         private readonly IUserContext _userContext;
         private readonly IDiscusslyDbContext _context;
+        private readonly IStorageService _storageService;
         private readonly ILogger<CommentService> _logger;
 
-        public CommentService(IUserContext userContext, IDiscusslyDbContext context, ILogger<CommentService> logger)
+        public CommentService(IUserContext userContext, IDiscusslyDbContext context, ILogger<CommentService> logger, IStorageService storageService)
         {
             _context = context;
             _userContext = userContext;
             _logger = logger;
+            _storageService = storageService;
         }
 
         public async Task<Result<Guid>> AddAsync(CreateCommentDto dto, CancellationToken cancellationToken)
@@ -39,15 +42,26 @@ namespace Discussly.Application.Services
                 if (userId == null)
                     return Result<Guid>.Failure("Couldn't get user id");
 
-                var comment = Comment.Create(dto.Text, userId.Value, dto.PostId, dto.CommentId);
-                if (comment.IsFailure)
-                    return Result<Guid>.Failure(comment.Error);
+                var commentResult = Comment.Create(dto.Text, userId.Value, dto.PostId, dto.CommentId);
+                if (commentResult.IsFailure)
+                    return Result<Guid>.Failure(commentResult.Error);
 
-                await _context.AddAsync(comment.Value);
+                var comment = commentResult.Value;
+
+                if (dto.Media != null)
+                {
+                    var mediaInfoResult = await _storageService.SaveFileAsync(comment.Id, dto.Media, Storage.CommentMedia);
+                    if (mediaInfoResult.IsSuccess)
+                    {
+                        comment.UpdateMedia(Path.Combine(mediaInfoResult.Value.FilePath, mediaInfoResult.Value.FileName));
+                    }
+                }
+                
+                await _context.AddAsync(comment);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation($"User {userId} add comment '{dto.Text}' on post {dto.PostId}");
-                return Result.Success(comment.Value.Id);
+                return Result.Success(comment.Id);
             }
             catch(OperationCanceledException)
             {
@@ -60,7 +74,6 @@ namespace Discussly.Application.Services
                 return Result<Guid>.Failure("Error when adding a comment");
             }
         }
-
         public async Task<Result<ICollection<CommentDto>>> GetAllAsync(CancellationToken cancellationToken)
         {
             try
@@ -82,7 +95,8 @@ namespace Discussly.Application.Services
                         CreatedAt = x.CreatedAt,
                         CommentCount = x.Replies.Count(),
                         Score = x.Votes.Sum(v => (short)v.VoteType),
-                        IsEditing = x.IsEdited
+                        IsEditing = x.IsEdited,
+                        MediaFileName = x.MediaFileName
                     }).ToListAsync(cancellationToken);
 
                 return Result<ICollection<CommentDto>>.Success(comments);
@@ -119,7 +133,8 @@ namespace Discussly.Application.Services
                         CreatedAt = x.CreatedAt,
                         CommentCount = x.Replies.Count(),
                         Score = x.Votes.Sum(v => (short)v.VoteType),
-                        IsEditing = x.IsEdited
+                        IsEditing = x.IsEdited,
+                        MediaFileName = x.MediaFileName
                     })
                     .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -139,7 +154,6 @@ namespace Discussly.Application.Services
                 return Result<CommentDto>.Failure("Error when receiving comment");
             }
         }
-
         public async Task<Result<ICollection<CommentDto>>> GetPostCommentsAsync(Guid postId, CancellationToken cancellationToken)
         {
             try
@@ -163,7 +177,8 @@ namespace Discussly.Application.Services
                         CreatedAt = x.CreatedAt,
                         CommentCount = x.Replies.Count(),
                         Score = x.Votes.Sum(v => (short)v.VoteType),
-                        IsEditing = x.IsEdited
+                        IsEditing = x.IsEdited,
+                        MediaFileName = x.MediaFileName
                     }).ToListAsync(cancellationToken);
 
                 return Result<ICollection<CommentDto>>.Success(comments);
@@ -179,7 +194,6 @@ namespace Discussly.Application.Services
                 return Result<ICollection<CommentDto>>.Failure("Error when receiving comments");
             }
         }
-
         public async Task<Result<ICollection<CommentDto>>> GetSubCommentAsync(Guid commentId, CancellationToken cancellationToken)
         {
             try
@@ -203,7 +217,8 @@ namespace Discussly.Application.Services
                         CreatedAt = x.CreatedAt,
                         CommentCount = x.Replies.Count(),
                         Score = x.Votes.Sum(v => (short)v.VoteType),
-                        IsEditing = x.IsEdited
+                        IsEditing = x.IsEdited,
+                        MediaFileName = x.MediaFileName
                     }).ToListAsync(cancellationToken);
 
                 return Result<ICollection<CommentDto>>.Success(comments);
@@ -219,7 +234,6 @@ namespace Discussly.Application.Services
                 return Result<ICollection<CommentDto>>.Failure("Error when receiving comments");
             }
         }
-
         public async Task<Result> Delete(Guid id, CancellationToken cancellationToken)
         {
             try

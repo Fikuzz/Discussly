@@ -93,6 +93,7 @@ namespace Discussly.Application.Services
                     FileType.Video => _settings.PostVideos,
                     _ => _settings.Attachments
                 },
+                Storage.CommentMedia => _settings.CommentImages,
                 _ => _settings.Attachments
             };
         }
@@ -184,11 +185,14 @@ namespace Discussly.Application.Services
             await using var fileStream = new FileStream(fullFileName, FileMode.Create);
 
             using var image = await SixLabors.ImageSharp.Image.LoadAsync(file.OpenReadStream());
-            image.Mutate(x => x.Resize(new ResizeOptions
+            if (width > 0 && height > 0)
             {
-                Size = new SixLabors.ImageSharp.Size(width, height),
-                Mode = ResizeMode.Crop
-            }));
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new SixLabors.ImageSharp.Size(width, height),
+                    Mode = ResizeMode.Crop
+                }));
+            }
             await image.SaveAsync(fileStream, new JpegEncoder());
 
             await fileStream.FlushAsync();

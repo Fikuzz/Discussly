@@ -14,15 +14,15 @@ namespace Discussly.Core.Entities
         public Guid? ParentCommentId { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
+        public string? MediaFileName { get; private set; }
 
         // НАВИГАЦИОННЫЕ СВОЙСТВА:
         public virtual User Author { get; private set; }
-        public virtual ICollection<CommentMediaAttachment> MediaAttachments { get; private set; } = new List<CommentMediaAttachment>();
         public virtual ICollection<CommentVote> Votes { get; private set; } = new List<CommentVote>();
         public virtual ICollection<Comment> Replies { get; private set; } = new List<Comment>();
 
         private Comment() { }
-        public static Result<Comment> Create(string contentText, Guid authorId, Guid postId, Guid? parentCommentId)
+        public static Result<Comment> Create(string contentText, Guid authorId, Guid postId, Guid? parentCommentId, string? mediaFileName = null)
         {
             var validateResult = ValidateContentText(contentText);
 
@@ -37,7 +37,8 @@ namespace Discussly.Core.Entities
                 PostId = postId,
                 ParentCommentId = parentCommentId,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                MediaFileName = mediaFileName
             };
             return Result.Success(comment);
         }
@@ -55,7 +56,10 @@ namespace Discussly.Core.Entities
 
             return Result.Success();
         }
-
+        public void UpdateMedia(string mediaFileName)
+        {
+            MediaFileName = mediaFileName;
+        }
         public Result UpdateContentText(string contentText)
         {
             var validateResult = ValidateContentText(contentText);

@@ -6,6 +6,7 @@
         public ImageSettings Avatars { get; set; } = new();
         public ImageSettings CommunityAvatars { get; set; } = new();
         public ImageSettings PostImages { get; set; } = new();
+        public ImageSettings CommentImages { get; set; } = new();
         public VideoSettings PostVideos { get; set; } = new();
         public FileSettings Attachments { get; set; } = new();
     }
