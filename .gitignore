@@ -361,5 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/Discussly.Api/wwwroot/avatars
-/Discussly.Api/wwwroot/posts
+/Discussly.Api/wwwroot
