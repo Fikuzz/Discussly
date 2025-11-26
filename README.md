@@ -9,6 +9,8 @@ A Reddit-like discussion platform built with modern web technologies. This repos
 - **Architecture**: MVC Pattern
 - **Containerization**: Docker
 - **API**: RESTful API
+- **DB**: PostgreSQL
+- **ORM**: Entity Framework Core
 - **Testing**: xUnit
 
 ## Implemented
