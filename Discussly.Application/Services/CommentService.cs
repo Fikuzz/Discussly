@@ -6,8 +6,10 @@ using Discussly.Core.Entities;
 using Discussly.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -247,6 +249,18 @@ namespace Discussly.Application.Services
                 if (userId == null)
                     return Result.Failure("Couldn't get user id");
 
+                var comments = await _context.Comments
+                    .Where(c => c.Id == id)
+                    .Include(c => c.Replies)
+                    .ThenInclude(c => c.Replies)
+                    .ToListAsync();
+
+                var mediaNames = CollectMediaFromCommentTree(comments);
+                foreach(var mediaName in mediaNames)
+                {
+                    _storageService.DeleteFile(mediaName, Storage.CommentMedia, FileType.Image);
+                }
+
                 var deletedCount = await _context.Comments
                     .Where(c => c.Id == id && c.AuthorId == userId.Value)
                     .ExecuteDeleteAsync(cancellationToken);
@@ -274,6 +288,23 @@ namespace Discussly.Application.Services
                 _logger.LogError(ex, "Error when deleting comment {CommentId}", id);
                 return Result.Failure("Error when deleting comment");
             }
+        }
+
+        private List<string> CollectMediaFromCommentTree(IEnumerable<Comment> comments)
+        {
+            var result = new List<string>();
+
+            foreach(Comment comment in comments)
+            {
+                if(!string.IsNullOrEmpty(comment.MediaFileName))
+                    result.Add(comment.MediaFileName);
+
+                if(comment.Replies.Any())
+                    result.AddRange(
+                        CollectMediaFromCommentTree(comment.Replies));
+            }
+
+            return result;
         }
     }
 }
